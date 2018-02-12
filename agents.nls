@@ -9,17 +9,24 @@ buses-own [
   previous_stop   ; ID of the last bus stop that the agent (bus) visited (-1 means that the agent has not visited any bus stop yet).
   current_stop    ; ID of the bus stop where the agent (bus) currently is (-1 means that the agent is not at any bus stop).
   next_stop       ; ID of the bus stop the agent (bus) is traveling to (-1 means that the agent is not travelling to any bus stop).
-
   ; New local variables for students.
   ; You can create any new local variable you want. Just declare them here.
-
+  bus-route       ; Every bus has a route
+  direction       ; 0 - from begin to end, 1 - from end to begin
+  next-stops      ; List of upcoming stops
+  capacity        ; Capacity of the bus
 ]
  
 globals [graph]
 
 to init-buses
   ; Initialize your agents here.
-
+  set direction 0
+  if bus_id = 24 [set bus-route [1 2 3 4]]
+  if bus_type = 1 [set capacity 12]
+  if bus_type = 2 [set capacity 60]
+  if bus_type = 3 [set capacity 150]
+  
   ; This list contains the topology of the entire network of bus stops, which is known to all agents. You can use this, for instance, to calculate the shortest path between two bus stops.
   set graph [[22 15 14] [11 19 23 7] [8] [16 4 20 9] [3 5 10] [4 16 10 17] [8] [1 17 13] [2 6 9] [3 8 20] [4 5 17 13 21] [1 16 17] [20 15 22] [7 10 22 23] [0 23] [0 12 18] [3 5 11] [5 7 10 11] [15] [1 23] [3 9 12 21] [10 20 22] [0 12 13 21] [1 13 14 19]]
 end
@@ -27,4 +34,51 @@ end
 to execute-actions
   ; Add decision making strategies for your agents here.
   ; You are allowed to use the global variable 'ticks'.
+  
+  ;look at what stops are upcoming
+  if current_stop != -1 [                                      ;check if we are not on the road
+    let stop-index position current_stop bus-route             ;we check index of current stop and determine next-stops
+    if direction = 0[
+      set next-stops sublist bus-route (stop-index + 1) 100 
+      ]
+    if direction = 1[
+      set next-stops sublist bus-route 0 (stop-index - 1)
+      ]
+    
+    pickup-passengers
+    drop-passengers
+    move-to-next
+    ]
+end
+
+
+to pickup-passengers
+  let num-passengers length bus_passengers
+  let free-space (capacity - num-passengers) ;check how many passengers we can pick up
+  
+  ;pick up passengers en route
+  let stop-passengers get-passengers-at-stop [1] ;hier
+
+  foreach [stop-passengers][
+    [a, b] -> show
+    let id a
+    let goal b
+    if member? goal next-stops[
+      
+      
+      ]
+    
+    ]
+  
+  
+end
+
+to drop-passengers
+  
+
+end
+
+to move-to-next
+  
+
 end
