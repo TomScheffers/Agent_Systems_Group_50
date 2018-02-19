@@ -16,6 +16,7 @@ buses-own [
   next-stops      ; List of upcoming stops
   capacity        ; Capacity of the bus
   free-space      ; Current free space in the bus
+  route-type      ; Circle or line: true for line, false for circle
 ]
  
 globals [graph]
@@ -24,7 +25,8 @@ to init-buses
   ; Initialize your agents here.
   set direction 1
   set next-stops []
-  if bus_id = 24 [set bus-route [3 4 5 10 13 22]]
+  if bus_id = 24 [set bus-route [3 4 5 16 11 1 19 23 14 0 15 18 15 12 22 13 7 17 10 21 20 9 8 2 8 6 8 9 3] 
+                  set route-type true]
   if bus_type = 1 [set capacity 12]
   if bus_type = 2 [set capacity 60]
   if bus_type = 3 [set capacity 150]
@@ -62,26 +64,38 @@ to execute-actions
   
   ;look at what stops are upcoming
   ;show current_stop
-  show bus_passengers
-  if current_stop != -1 [                                     ;check if we are not on the road
-    let stop-index position current_stop bus-route             ;we check index of current stop and determine next-stops
-    
-    if (length next-stops) = 1[
-      write "Reached end, reverting direction!"
-      set direction (direction * -1)] 
-    
-    if direction = 1[
-      set next-stops sublist bus-route (stop-index + 1) length bus-route 
+  
+
+  
+  show next-stops
+  ifelse route-type[
+    if current_stop != -1 [                                     ;check if we are not on the road
+      let stop-index position current_stop bus-route             ;we check index of current stop and determine next-stops
+      
+      if (length next-stops) = 1 [
+        write "Reached end, reverting direction!"
+        set direction (direction * -1)] 
+      
+      if direction = 1 [
+        set next-stops sublist bus-route (stop-index + 1) length bus-route 
       ]
-    if direction = -1[
-      set next-stops reverse sublist bus-route 0 stop-index
+      
+      if direction = -1 [
+        set next-stops reverse sublist bus-route 0 stop-index
       ]
-    
-    drop-passengers    
-    pickup-passengers
-    move-to-next
+      
+      drop-passengers    
+      pickup-passengers
+      move-to-next
     ]
-  if (current_stop = -1) and (length next-stops > 0)[travel-to item 0 next-stops]
+    
+    if (current_stop = -1) and (length next-stops > 0)[travel-to item 0 next-stops]
+  ][
+    show " hi" 
+  
+  ]
+  
+  
 end
 
 
