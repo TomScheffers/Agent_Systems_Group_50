@@ -18,15 +18,22 @@ buses-own [
   free-space      ; Current free space in the bus
   route-type      ; Circle or line: true for line, false for circle
 ]
- 
+
+; Not allowed to create new global variables!!!
+
 globals [graph]
 
 to init-buses
   ; Initialize your agents here.
   set direction 1
   set next-stops []
-  if bus_id = 24 [set bus-route [3 4 5 16 11 1 19 23 14 0 15 18 15 12 22 13 7 17 10 21 20 9 8 2 8 6 8 9 3] 
+  if bus_id = 24 [set bus-route [3 4 5 16 11 1 19 23 14 0 15 18 15 12 22 13 7 17 10 21 20 9 8 2 8 6 8 9]
+                  set route-type false
+                  set next-stops bus-route]
+  
+  if bus_id = 25 [set bus-route [3 4 5 16 11]
                   set route-type true]
+  
   if bus_type = 1 [set capacity 12]
   if bus_type = 2 [set capacity 60]
   if bus_type = 3 [set capacity 150]
@@ -56,7 +63,9 @@ to init-buses
              [10 20 22]    ; 21   - Weesperplein
              [0 12 13 21]  ; 22   - Wibautstraat
              [1 13 14 19]] ; 23   - Zuid
+  
 end
+
 
 to execute-actions
   ; Add decision making strategies for your agents here.
@@ -64,40 +73,57 @@ to execute-actions
   
   ;look at what stops are upcoming
   ;show current_stop
-  
 
-  
-  show next-stops
-  ifelse route-type[
-    if current_stop != -1 [                                     ;check if we are not on the road
-      let stop-index position current_stop bus-route             ;we check index of current stop and determine next-stops
-      
-      if (length next-stops) = 1 [
-        write "Reached end, reverting direction!"
-        set direction (direction * -1)] 
-      
-      if direction = 1 [
-        set next-stops sublist bus-route (stop-index + 1) length bus-route 
-      ]
-      
-      if direction = -1 [
-        set next-stops reverse sublist bus-route 0 stop-index
-      ]
+  show next-stops 
+
+  ifelse route-type = false [
+    if current_stop != -1 [
+      show current_stop
+      set next-stops lput current_stop next-stops
+      set next-stops but-first next-stops
       
       drop-passengers    
       pickup-passengers
       move-to-next
     ]
+  ] [
+    if current_stop != -1 [                                     ;check if we are not on the road
+      let stop-index position current_stop bus-route             ;we check index of current stop and determine next-stops
     
-    if (current_stop = -1) and (length next-stops > 0)[travel-to item 0 next-stops]
-  ][
-    show " hi" 
+      if (length next-stops) = 1 [
+        write "Reached end, reverting direction!"
+        set direction (direction * -1)] 
+    
+      if direction = 1 [
+        set next-stops sublist bus-route (stop-index + 1) length bus-route 
+      ]
+    
+      if direction = -1 [
+        set next-stops reverse sublist bus-route 0 stop-index
+      ]
+    
+      drop-passengers    
+      pickup-passengers
+      move-to-next
+    ]
+  ]
   
+  
+    
+  if (current_stop = -1) and (length next-stops > 0)[travel-to item 0 next-stops]
+  
+end
+
+
+to check-yoself
+  
+  let capacity-ratio (free-space / capacity)
+  if capacity-ratio > 0.8 [
+    
   ]
   
   
 end
-
 
 to pickup-passengers
   ;pick up passengers en route
@@ -107,7 +133,7 @@ to pickup-passengers
     let id item 0 ?
     let goal item 1 ?
     if member? goal next-stops[     ;This checks if the goal is en route
-      if free-space > 0[
+      if free-space > 0 [
         write "Picked up passenger with id:"
         show id
         pick-up-passenger id
@@ -131,6 +157,7 @@ to drop-passengers
 end
 
 to move-to-next
-  if length next-stops > 0 [travel-to item 0 next-stops]
+  if length next-stops > 0 
+    [travel-to item 0 next-stops]
 
 end
