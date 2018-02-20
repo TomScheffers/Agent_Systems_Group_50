@@ -1,0 +1,36 @@
+to pickup-passengers
+  ;pick up passengers en route
+  let stop-passengers get-passengers-at-stop current_stop
+
+  foreach stop-passengers[
+    let id item 0 ?
+    let goal item 1 ?
+    if member? goal next-stops[     ;This checks if the goal is en route
+      if free-space > 0 [
+        write "Picked up passenger with id:"
+        show id
+        pick-up-passenger id
+        set free-space (free-space - 1)
+        ]
+      ]
+    ]
+end
+
+to drop-passengers
+  foreach bus_passengers[
+    let id item 0 ?
+    let goal item 1 ?
+    if goal = current_stop [
+      write "Dropped of passenger with id:"
+      show id
+      drop-off-passenger id
+      set free-space (free-space + 1)
+      ]
+    ]
+end
+
+to move-to-next
+  if length next-stops > 0 
+    [travel-to item 0 next-stops]
+
+end

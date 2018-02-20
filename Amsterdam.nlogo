@@ -49,7 +49,11 @@ to setup
   get-daily-ridership-schedule
   update-bus-stops
   setup-costs
-  add-bus 1
+  add-bus 3
+  ;add-bus 2
+  ask buses [
+    show route-type
+  ]
 end
 
 to calculate-average-travelling-time
@@ -149,7 +153,7 @@ end
 
 to create-world
   ;World's max-pxcor and max-pycor: 40,30.
-  import-drawing "amsterdam-new-map.png"
+  ;import-drawing "amsterdam-new-map.png"
   create-bus-stops
 end
 
@@ -173,6 +177,7 @@ to create-bus-stops
       set passengers_waiting []
       set passengers_that_arrived 0
       set color 109.9
+      set label item i amsterdam_bus_stops_names
     ]
   ]
   build-connections
@@ -203,7 +208,8 @@ to update-routes
       set ycors lput ycor ycors
     ]
     set route_size sqrt (((item 0 xcors - item 1 xcors) ^ 2) + ((item 0 ycors - item 1 ycors) ^ 2))
-    hide-link
+
+    ;hide-link
   ]
 end
 
@@ -244,6 +250,9 @@ to go
       update-bus-stops
       ask buses [
         execute-actions
+      ]
+      ask bus_stops [
+        set label length passengers_waiting
       ]
       add-buses
     ]
