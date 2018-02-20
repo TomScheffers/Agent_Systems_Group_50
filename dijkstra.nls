@@ -1,3 +1,4 @@
+extensions [matrix]
 
 to-report init-connectivity-matrix  
   ;show "Starting to init the connectivity graph from here"

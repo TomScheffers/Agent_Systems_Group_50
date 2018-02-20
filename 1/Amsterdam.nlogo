@@ -49,11 +49,7 @@ to setup
   get-daily-ridership-schedule
   update-bus-stops
   setup-costs
-  add-bus 3
-  ;add-bus 2
-  ask buses [
-    show route-type
-  ]
+  add-bus 1
 end
 
 to calculate-average-travelling-time
@@ -153,7 +149,7 @@ end
 
 to create-world
   ;World's max-pxcor and max-pycor: 40,30.
-  ;import-drawing "amsterdam-new-map.png"
+  import-drawing "amsterdam-new-map.png"
   create-bus-stops
 end
 
@@ -177,7 +173,6 @@ to create-bus-stops
       set passengers_waiting []
       set passengers_that_arrived 0
       set color 109.9
-      set label item i amsterdam_bus_stops_names
     ]
   ]
   build-connections
@@ -208,8 +203,7 @@ to update-routes
       set ycors lput ycor ycors
     ]
     set route_size sqrt (((item 0 xcors - item 1 xcors) ^ 2) + ((item 0 ycors - item 1 ycors) ^ 2))
-
-    ;hide-link
+    hide-link
   ]
 end
 
@@ -250,9 +244,6 @@ to go
       update-bus-stops
       ask buses [
         execute-actions
-      ]
-      ask bus_stops [
-        set label length passengers_waiting
       ]
       add-buses
     ]
@@ -881,30 +872,8 @@ MONITOR
 238
 1336
 283
-Buses' Expenses
+Total Amount of Money Spent
 expenses
-2
-1
-11
-
-MONITOR
-1097
-194
-1336
-239
-Passengers' Average Travelling Time
-average_travelling_time
-2
-1
-11
-
-MONITOR
-1097
-477
-1336
-522
-Number of Passengers Waiting for a Bus
-amount_passengers_waiting
 2
 1
 11
@@ -914,7 +883,7 @@ MONITOR
 282
 1336
 327
-Number of Messages Sent by the Buses
+Total Number of Messages Sent
 number_of_messages
 2
 1
@@ -925,9 +894,9 @@ PLOT
 848
 335
 1066
-Average Travelling Time
+Average Travel Time
 Ticks
-Average Travelling Time
+Time
 0.0
 10.0
 0.0
@@ -936,7 +905,7 @@ true
 false
 "" ""
 PENS
-"default" 1.0 0 -16777216 true "" "plot average_travelling_time"
+"default" 1.0 0 -16777216 true "" "plot final_average_travelling_time"
 "pen-1" 1.0 0 -7500403 true "" ""
 
 PLOT
@@ -944,9 +913,9 @@ PLOT
 848
 649
 1066
-Buses Expenses
+Total Amount of Money Spent
 Ticks
-Expenses
+Euros
 0.0
 10.0
 0.0
@@ -962,9 +931,9 @@ PLOT
 848
 962
 1066
-Messages Sent by the Buses
+Total Number of Messages Sent
 Ticks
-Number of Messages
+#Messages
 0.0
 10.0
 0.0
@@ -975,43 +944,14 @@ false
 PENS
 "default" 1.0 0 -16777216 true "" "plot number_of_messages"
 
-PLOT
-1096
-327
-1336
-477
-Number of Passengers Waiting for a Bus
-NIL
-NIL
-0.0
-10.0
-0.0
-10.0
-true
-false
-"" ""
-PENS
-"default" 1.0 0 -16777216 true "" "plot amount_passengers_waiting"
-
 MONITOR
-1097
-522
-1336
-567
-NIL
-average_travelling_time_remaining
-17
-1
-11
-
-MONITOR
-1097
-627
-1340
-672
-NIL
+1098
+196
+1338
+241
+Average Travel Time
 final_average_travelling_time
-17
+2
 1
 11
 

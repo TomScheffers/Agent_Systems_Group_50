@@ -1,0 +1,163 @@
+buses-own [
+  ; Static, read-only variables. These values never change. You can read them, but you cannot change them.
+  bus_id          ; The ID of a given agent (bus). Each agent has a unique ID.
+  bus_type        ; The type of a given agent (bus). 1 means "small", 2 means "medium" and 3 means "large".
+    
+  ; Dynamic, read-only variables. These values may change over time. You can read them, but you cannot change them.
+  inbox           ; List containing all the incoming messages (a given message is a list like this [tick sender message]).
+  bus_passengers  ; List containing all the passengers that the agent (bus) is currently carrying (represented as a list like this [passenger_id bus_stop]).
+  previous_stop   ; ID of the last bus stop that the agent (bus) visited (-1 means that the agent has not visited any bus stop yet).
+  current_stop    ; ID of the bus stop where the agent (bus) currently is (-1 means that the agent is not at any bus stop).
+  next_stop       ; ID of the bus stop the agent (bus) is traveling to (-1 means that the agent is not travelling to any bus stop).
+  ; New local variables for students.
+  ; You can create any new local variable you want. Just declare them here.
+  bus-route       ; Every bus has a route
+  direction       ; 1 - from begin to end, -1 - from end to begin
+  next-stops      ; List of upcoming stops
+  capacity        ; Capacity of the bus
+  free-space      ; Current free space in the bus
+  route-type      ; Circle or line: true for line, false for circle
+]
+
+; Not allowed to create new global variables!!!
+
+globals [graph]
+
+to init-buses
+  ; Initialize your agents here.
+  set direction 1
+  set next-stops []
+  if bus_id = 24 [set bus-route [3 4 5 16 11 1 19 23 14 0 15 18 15 12 22 13 7 17 10 21 20 9 8 2 8 6 8 9]
+                  set route-type false
+                  set next-stops bus-route]
+  
+  if bus_id = 25 [set bus-route [3 4 5 16 11]
+                  set route-type true]
+  
+  if bus_type = 1 [set capacity 12]
+  if bus_type = 2 [set capacity 60]
+  if bus_type = 3 [set capacity 150]
+  set free-space capacity
+  ; This list contains the topology of the entire network of bus stops, which is known to all agents. You can use this, for instance, to calculate the shortest path between two bus stops.
+  set graph [[22 15 14]    ; 0    - Amstel
+             [11 19 23 7]  ; 1    - Amstelveenseweg
+             [8]           ; 2    - Buikslotermeer
+             [16 4 20 9]   ; 3    - Centraal
+             [3 5 10]      ; 4    - Dam
+             [4 16 10 17]  ; 5    - Evertsenstraat
+             [8]           ; 6    - Floradorp
+             [1 17 13]     ; 7    - Haarlemmermeerstation
+             [2 6 9]       ; 8    - Hasseltweg
+             [3 8 20]      ; 9    - Hendrikkade
+             [4 5 17 13 21]; 10   - Leidseplein
+             [1 16 17]     ; 11   - Lelylaan
+             [20 15 22]    ; 12   - Muiderpoort
+             [7 10 22 23]  ; 13   - Museumplein
+             [0 23]        ; 14   - RAI
+             [0 12 18]     ; 15   - Sciencepark
+             [3 5 11]      ; 16   - Sloterdijk
+             [5 7 10 11]   ; 17   - Surinameplein
+             [15]          ; 18   - UvA
+             [1 23]        ; 19   - VU
+             [3 9 12 21]   ; 20   - Waterlooplein
+             [10 20 22]    ; 21   - Weesperplein
+             [0 12 13 21]  ; 22   - Wibautstraat
+             [1 13 14 19]] ; 23   - Zuid
+  
+end
+
+
+to execute-actions
+  ; Add decision making strategies for your agents here.
+  ; You are allowed to use the global variable 'ticks'.
+  
+  ;look at what stops are upcoming
+  ;show current_stop
+
+  show next-stops 
+
+  ifelse route-type = false [
+    if current_stop != -1 [
+      show current_stop
+      set next-stops lput current_stop next-stops
+      set next-stops but-first next-stops
+      
+      drop-passengers    
+      pickup-passengers
+      move-to-next
+    ]
+  ] [
+    if current_stop != -1 [                                     ;check if we are not on the road
+      let stop-index position current_stop bus-route             ;we check index of current stop and determine next-stops
+    
+      if (length next-stops) = 1 [
+        write "Reached end, reverting direction!"
+        set direction (direction * -1)] 
+    
+      if direction = 1 [
+        set next-stops sublist bus-route (stop-index + 1) length bus-route 
+      ]
+    
+      if direction = -1 [
+        set next-stops reverse sublist bus-route 0 stop-index
+      ]
+    
+      drop-passengers    
+      pickup-passengers
+      move-to-next
+    ]
+  ]
+  
+  
+    
+  if (current_stop = -1) and (length next-stops > 0)[travel-to item 0 next-stops]
+  
+end
+
+
+to check-yoself
+  
+  let capacity-ratio (free-space / capacity)
+  if capacity-ratio > 0.8 [
+    
+  ]
+  
+  
+end
+
+to pickup-passengers
+  ;pick up passengers en route
+  let stop-passengers get-passengers-at-stop current_stop
+
+  foreach stop-passengers[
+    let id item 0 ?
+    let goal item 1 ?
+    if member? goal next-stops[     ;This checks if the goal is en route
+      if free-space > 0 [
+        write "Picked up passenger with id:"
+        show id
+        pick-up-passenger id
+        set free-space (free-space - 1)
+        ]
+      ]
+    ]
+end
+
+to drop-passengers
+  foreach bus_passengers[
+    let id item 0 ?
+    let goal item 1 ?
+    if goal = current_stop [
+      write "Dropped of passenger with id:"
+      show id
+      drop-off-passenger id
+      set free-space (free-space + 1)
+      ]
+    ]
+end
+
+to move-to-next
+  if length next-stops > 0 
+    [travel-to item 0 next-stops]
+
+end

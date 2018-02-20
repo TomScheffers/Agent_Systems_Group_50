@@ -49,11 +49,7 @@ to setup
   get-daily-ridership-schedule
   update-bus-stops
   setup-costs
-  add-bus 3
-  ;add-bus 2
-  ask buses [
-    show route-type
-  ]
+  add-bus 1
 end
 
 to calculate-average-travelling-time
@@ -153,7 +149,7 @@ end
 
 to create-world
   ;World's max-pxcor and max-pycor: 40,30.
-  ;import-drawing "amsterdam-new-map.png"
+  import-drawing "amsterdam-new-map.png"
   create-bus-stops
 end
 
@@ -177,14 +173,13 @@ to create-bus-stops
       set passengers_waiting []
       set passengers_that_arrived 0
       set color 109.9
-      set label item i amsterdam_bus_stops_names
     ]
   ]
   build-connections
 end
 
 to build-connections
-  let connections [[15 14 22] [19 23 11] [8] [9 20 4 16] [5 10] [10 17 16] [8] [13 1 17] [9] [20] [17 13 21] [17 16] [20 22 15] [22 23] [23] [18] [] [] [] [23] [21] [22] [] []]
+  let connections [[22 15 14] [11 19 23 7] [8] [16 4 20 9] [3 5 10] [4 16 10 17] [8] [1 17 13] [2 6 9] [3 8 20] [4 5 17 13 21] [1 16 17] [20 15 22] [7 10 22 23] [0 23] [0 12 18] [3 5 11] [5 7 10 11] [15] [1 23] [3 9 12 21] [10 20 22] [0 12 13 21] [1 13 14 19]]
   let i 0
   foreach connections [
     if length ? > 0 [
@@ -208,8 +203,7 @@ to update-routes
       set ycors lput ycor ycors
     ]
     set route_size sqrt (((item 0 xcors - item 1 xcors) ^ 2) + ((item 0 ycors - item 1 ycors) ^ 2))
-
-    ;hide-link
+    hide-link
   ]
 end
 
@@ -250,9 +244,6 @@ to go
       update-bus-stops
       ask buses [
         execute-actions
-      ]
-      ask bus_stops [
-        set label length passengers_waiting
       ]
       add-buses
     ]
@@ -521,7 +512,7 @@ to add-buses
       set ycor 21
       set bus_passengers []
       set bus_id who
-      set next_stop false
+      set next_stop -1
       set current_stop 3
       set previous_stop -1
       init-buses
@@ -649,7 +640,7 @@ to-report is-adjacent? [b_id b_s_id]
       ]
     ]
     [
-      if not is-boolean? get-distance b_s_id bsh [
+      if (get-distance b_s_id bsh) != -1[
         set return true
       ]
     ]
@@ -700,7 +691,7 @@ to pick-up-passenger [passenger_id]
           ]
         ]
         [
-          show (word "WARNING: pick-up-passenger             :" "it is impossible to pick up this passenger:" passenger_id)
+          show (word "WARNING: pick-up-passenger             :" "It is impossible to pick up such a passenger:" passenger_id)
         ]
       ]
     ]
@@ -751,7 +742,7 @@ to drop-off-passenger [p_id]
         set passengers replace-item pos_passenger passengers passenger
       ]
       [
-        show (word "WARNING: drop-off-passenger            :" "it is impossible to drop off this passenger: " p_id)
+        show (word "WARNING: drop-off-passenger            :" "It is impossible to drop off such a passenger: " p_id)
       ]
     ]
   ]
@@ -760,7 +751,7 @@ end
 to-report get-passengers-at-stop [b_s_id]
   let information []
   ifelse is-number? b_s_id = false or count bus_stops with [who = b_s_id] <= 0 [
-     show (word "WARNING: get-passengers-waiting-at-stop:" " there is no bus-stop " b_s_id)]
+     show (word "WARNING: get-passengers-waiting-at-stop:" " there is not bus-stop " b_s_id)]
   [
     ask bus_stop b_s_id [
       foreach passengers_waiting [
