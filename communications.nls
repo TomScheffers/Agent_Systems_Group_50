@@ -3,7 +3,7 @@ to communication-protocol
   process-inbox
   
   ; This is method for sending a total status to all buses
-  ifelse remainder ticks 2 = 0 [ report-status ][show inbox clear-inbox]
+  if remainder ticks 2 = 0 [ report-status ]
   
   ; This is a test situation for when a bus is spawned
   if ticks = 10 and bus_id = 24 [
@@ -67,11 +67,11 @@ end
 
 
 to request-info
-  show "calling request-info method"
+  ;show "calling request-info method"
   let id 0
   foreach (list other buses) [
     ask ? [
-      if spawner = true [set id bus_id]
+      if spawner > 0 [set id bus_id]
     ]
   ]
   

@@ -1005,10 +1005,10 @@ average_travelling_time_remaining
 11
 
 MONITOR
-1097
-627
-1340
-672
+1094
+565
+1337
+610
 NIL
 final_average_travelling_time
 17
