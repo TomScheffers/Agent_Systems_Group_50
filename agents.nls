@@ -112,11 +112,8 @@ to execute-actions
       show current_stop
       set next-stops lput current_stop next-stops
       set next-stops but-first next-stops
-
-      drop-passengers
-      pickup-passengers
-      move-to-next
-
+      
+      bus-actions
     ]
   ]
   if route-type = 1[
@@ -134,10 +131,7 @@ to execute-actions
       if direction = -1 [
         set next-stops reverse sublist bus-route 0 stop-index
       ]
-
-      drop-passengers
-      pickup-passengers
-      move-to-next
+      bus-actions
     ]
   ]
   if route-type = 2[
@@ -171,9 +165,7 @@ to execute-actions
           ]
         ]
       ]
-      drop-passengers
-      pickup-passengers
-      move-to-next
+      bus-actions
       ]
     ]
 

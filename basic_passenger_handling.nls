@@ -1,3 +1,11 @@
+to bus-actions
+  drop-passengers
+  pick-up-drop-same-station
+  pickup-passengers
+  move-to-next
+end
+
+
 to pickup-passengers
   ;pick up passengers en route
   let stop-passengers get-passengers-at-stop current_stop
@@ -33,4 +41,18 @@ to move-to-next
   if length next-stops > 0 
     [travel-to item 0 next-stops]
 
+end
+
+to pick-up-drop-same-station
+  let stop-passengers get-passengers-at-stop current_stop
+  if free-space > 0 [
+    foreach stop-passengers[
+      let id item 0 ?
+      let goal item 1 ?
+      if goal = current_stop[     ;This checks if the goal is same as current station
+        pick-up-passenger id
+        drop-off-passenger id
+        ]
+      ]  
+    ]
 end
