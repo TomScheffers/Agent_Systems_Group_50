@@ -1,5 +1,6 @@
 __includes ["dijkstra.nls" 
-            "basic_passenger_handling.nls"]
+            "basic_passenger_handling.nls"
+            "communications.nls"]
 
 buses-own [
   ; Static, read-only variables. These values never change. You can read them, but you cannot change them.
