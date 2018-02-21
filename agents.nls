@@ -27,6 +27,10 @@ buses-own [
   total-capacity  ; This contains the total capacity of all busses (only known by bus 24)
   travel-matrix   ; This matrix contains all travelling
   weight-matrix   ; The weight matrix contains weights on all edges of the shortest route of all passengers
+  
+  informed        ; True or False, by default False at birth set to true once instructions have been given
+  spawner         ; 0 for no spawn; 1, 2 or 3 for bus type spawned
+  dijkstra_lookup ; The internal shortest-path lookup table
 ]
 
 ; Not allowed to create new global variables!!!
@@ -35,12 +39,16 @@ globals [graph]
 
 to init-buses
   ; Initialize your agents here.
+  set informed false
+  set spawner false
   set direction 1
   set next-stops []
-  if bus_id = 24 [set route-type 2]
+  if bus_id = 24 [set route-type 2 
+                  set informed true]
   if bus_id = 25 [set bus-route [3 4 5 16 11 1 19 23 14 0 15 18 15 12 22 13 7 17 10 21 20 9 8 2 8 6 8 9]
     set route-type 0
-    set next-stops bus-route]
+    set next-stops bus-route
+    set informed true]
   if bus_id = 26 [set bus-route [3 4 5 16 11]
     set route-type 1]
   if bus_id > 26 [set route-type 2]
@@ -108,9 +116,12 @@ to make-weight-matrix
 end
 
 to execute-actions
+  
+  communication-protocol
+  
   if route-type = 0 [
     if current_stop != -1 [
-      show current_stop
+      ;show current_stop
       set next-stops lput current_stop next-stops
       set next-stops but-first next-stops
       
@@ -136,7 +147,7 @@ to execute-actions
     ]
   ]
   if route-type = 2[
-    show next-stops
+    ;show next-stops
     let required-length 6
     if current_stop != -1 [
       if length next-stops > 0 [set next-stops but-first next-stops] ;we reached destination, drop first of the list
@@ -159,10 +170,10 @@ to execute-actions
            ]
         ifelse next-stop = 0 [
           set required-length (required-length - 1) ;we cannot decide about a stop yet
-          show next-stops
+          ;show next-stops
           ][
           set next-stops lput next-stop next-stops
-          show next-stops
+          ;show next-stops
           ]
         ]
       ]

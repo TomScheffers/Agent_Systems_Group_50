@@ -1,0 +1,86 @@
+to communication-protocol
+  
+  process-inbox
+  
+  ; This is method for sending a total status to all buses
+  ifelse remainder ticks 2 = 0 [ report-status ][show inbox clear-inbox]
+  
+  ; This is a test situation for when a bus is spawned
+  if ticks = 10 and bus_id = 24 [
+    spawn-bus 2
+  ]
+  
+  ; This is a dedicated placeholder for buses that have no instructions yet
+  if informed = false [
+    request-info
+  ]
+  
+end
+
+to report-status
+
+  let id 0
+  foreach (list other buses) [
+    ask ? [set id bus_id]
+    
+    ; Enter the things you want to report on here:
+    let status_update []
+    
+    set status_update lput free-space status_update
+    set status_update lput previous_stop status_update
+    set status_update lput next-stops status_update
+    
+    ;send-message id status_update
+    
+  ]
+
+end
+
+to spawn-bus [b_type]
+  
+  ; call this function if a bus thinks it needs to spawn a bus.
+  ; Immediately pass the bus' dijkstra graph knowledge to the newly created bus.
+  set spawner b_type
+  add-bus b_type
+
+end
+
+to process-inbox
+
+  foreach inbox [
+    let message ?
+    if item 2 message = "requesting_info" [
+      ; Create a list of instructions to requested backup. 
+      send-message item 1 message "sending_info"
+      set spawner 0
+    ]
+    if item 2 message = "sending_info" [
+      set informed true
+      ; ...take the information from the message and store in initialization variables 
+    ]
+  ]
+  
+  clear-inbox
+
+end
+
+
+
+to request-info
+  show "calling request-info method"
+  let id 0
+  foreach (list other buses) [
+    ask ? [
+      if spawner = true [set id bus_id]
+    ]
+  ]
+  
+  send-message id "requesting_info"
+  
+end
+
+
+
+to clear-inbox
+  set inbox []
+end
