@@ -26,6 +26,7 @@ buses-own [
   total-capacity  ; This contains the total capacity of all busses (only known by bus 24)
   travel-matrix   ; This matrix contains all travelling
   weight-matrix   ; The weight matrix contains weights on all edges of the shortest route of all passengers
+  dijkstra-lookup-table ; The lookup table what is the best route from all node to all other nodes
 ]
 
 ; Not allowed to create new global variables!!!
@@ -76,6 +77,7 @@ to init-buses
   set total-passengers 0
   set total-capacity 0
   if bus_id = 24 [set total-capacity capacity]
+  set dijkstra-lookup-table make-route-lookup-table 
 end
 
 to make-weight-matrix
@@ -89,8 +91,9 @@ to make-weight-matrix
         let id item 0 ?
         let goal item 1 ?
         set total-passengers (total-passengers + 1)
-        let shortest-route dijkstra value goal             ;SUBSTITUTE THIS FOR A LOOKUP LIST WITH ALL THE DIJKSTRA VALUES
-
+        
+        
+        let shortest-route get-shortest-route value goal
         let begin-node value
         if length shortest-route > 1 [
           foreach shortest-route[
