@@ -1,12 +1,12 @@
 __includes ["dijkstra.nls"
-            "basic_passenger_handling.nls"
-            "communications.nls"]
+  "basic_passenger_handling.nls"
+  "communications.nls"]
 
 buses-own [
   ; Static, read-only variables. These values never change. You can read them, but you cannot change them.
   bus_id          ; The ID of a given agent (bus). Each agent has a unique ID.
   bus_type        ; The type of a given agent (bus). 1 means "small", 2 means "medium" and 3 means "large".
-
+  
                   ; Dynamic, read-only variables. These values may change over time. You can read them, but you cannot change them.
   inbox           ; List containing all the incoming messages (a given message is a list like this [tick sender message]).
   bus_passengers  ; List containing all the passengers that the agent (bus) is currently carrying (represented as a list like this [passenger_id bus_stop]).
@@ -22,11 +22,11 @@ buses-own [
   free-space      ; Current free space in the bus
   route-type      ; Circle (0)/line (1)/graph-based(2): true for line, false for circle
   connectivity-matrix ; The connectivity matrix
-
+  
   waiting-passengers; This contains the total number of travellers in the system
   total-capacity  ; This contains the total capacity of all busses (only known by bus 24)
   weight-matrix   ; The weight matrix contains weights on all edges of the shortest route of all passengers
-
+  
   informed        ; True or False, by default False at birth set to true once instructions have been given
   spawner         ; 0 for no spawn; 1, 2 or 3 for bus type spawned
   dijkstra_lookup ; The internal shortest-path lookup table
@@ -43,25 +43,29 @@ to init-buses
   set spawner 0
   set direction 1
   set next-stops []
-
+  
   set waiting-passengers 0
   set total-capacity 0
   set passenger-orders []
   if bus_id = 24 [set route-type 2
-                  set informed true]
+    set informed true]
   if bus_id = 25 [set bus-route [3 4 5 16 11 1 19 23 14 0 15 18 15 12 22 13 7 17 10 21 20 9 8 2 8 6 8 9]
+    set connectivity-matrix init-connectivity-matrix
+    set dijkstra_lookup make-route-lookup-table
     set route-type 0
     set next-stops bus-route
     set informed true]
   if bus_id = 26 [set bus-route [3 4 5 16 11]
-    set route-type 1]
-  if bus_id > 26 [set route-type 2]
-
+    set connectivity-matrix init-connectivity-matrix
+    set dijkstra_lookup make-route-lookup-table    set route-type 1]
+  if bus_id > 26 [set route-type 2
+    set connectivity-matrix init-connectivity-matrix
+    set dijkstra_lookup make-route-lookup-table]
   if bus_type = 1 [set capacity 12]
   if bus_type = 2 [set capacity 60]
   if bus_type = 3 [set capacity 150]
   set free-space capacity
-
+  
   if bus_id = 24 [
     ; This list contains the topology of the entire network of bus stops, which is known to all agents. You can use this, for instance, to calculate the shortest path between two bus stops.
     set graph [[22 15 14]    ; 0    - Amstel
@@ -88,10 +92,11 @@ to init-buses
       [10 20 22]    ; 21   - Weesperplein
       [0 12 13 21]  ; 22   - Wibautstraat
       [1 13 14 19]] ; 23   - Zuid
-
+    
     set connectivity-matrix init-connectivity-matrix
     set dijkstra_lookup make-route-lookup-table
     set total-capacity capacity
+    show "bus24 initialized"
   ]
 end
 
@@ -102,14 +107,14 @@ to make-weight-matrix
   let counter3 0
   let number-of-passenger-at-each-stop count-passengers-at-each-stop
   let all-stops [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
-
+  
   foreach all-stops [ let value ?
     let shortest-route get-shortest-route current_stop value
-
+    
     let begin-node current_stop
-
-    let weight item value number-of-passenger-at-each-stop / length shortest-route
-
+    
+    let weight item value number-of-passenger-at-each-stop / (length shortest-route * 10)
+    
     foreach shortest-route [
       let end-node ?
       if end-node != begin-node[
@@ -119,7 +124,7 @@ to make-weight-matrix
       ]
     ]
   ]
-
+  
   let relevant-stops []
   set relevant-stops lput current_stop relevant-stops
   foreach relevant-stops[
@@ -129,7 +134,7 @@ to make-weight-matrix
       let id item 0 ?
       let goal item 1 ?
       let shortest-route get-shortest-route value goal
-
+      
       let begin-node value
       let weight 1 / (length shortest-route)
       if length shortest-route > 1 [
@@ -144,12 +149,12 @@ to make-weight-matrix
       ]
     ]
   ]
-
+  
   foreach bus_passengers[
     let id item 0 ?
     let goal item 1 ?
     let shortest-route get-shortest-route current_stop goal
-
+    
     let begin-node current_stop
     let weight 1 / (length shortest-route)
     if length shortest-route > 1 [
@@ -163,14 +168,14 @@ to make-weight-matrix
       ]
     ]
   ]
-  write "Counter1 is"
-  show counter1
-  write "Counter2 is"
-  show counter2
-  write "Counter3 is"
-  show counter3
+  ;write "Counter1 is"
+  ;show counter1
+  ;write "Counter2 is"
+  ;show counter2
+  ;write "Counter3 is"
+  ;show counter3
   set weight-matrix K
-
+  
 end
 
 to-report count-passengers-at-each-stop
@@ -181,39 +186,39 @@ to-report count-passengers-at-each-stop
     let stop-passengers get-passengers-at-stop value
     set passenger-at-stop-list lput length stop-passengers passenger-at-stop-list
   ]
-
+  
   set waiting-passengers sum passenger-at-stop-list
-
+  
   report passenger-at-stop-list
 end
 
 to execute-actions
-
+  
   communication-protocol
-
-  write "Current stop is"
-  show current_stop
+  
+  ;  write "Current stop is"
+  ;  show current_stop
   if route-type = 0 [
     if current_stop != -1 [
       ;show current_stop
       set next-stops lput current_stop next-stops
       set next-stops but-first next-stops
-
+      
       bus-actions
     ]
   ]
   if route-type = 1[
     if current_stop != -1 [                                     ;check if we are not on the road
       let stop-index position current_stop bus-route             ;we check index of current stop and determine next-stops
-
+      
       if (length next-stops) = 1 [
         write "Reached end, reverting direction!"
         set direction (direction * -1)]
-
+      
       if direction = 1 [
         set next-stops sublist bus-route (stop-index + 1) length bus-route
       ]
-
+      
       if direction = -1 [
         set next-stops reverse sublist bus-route 0 stop-index
       ]
@@ -222,17 +227,17 @@ to execute-actions
   ]
   if route-type = 2[
     ;show next-stops
-    let required-length 6
+    let required-length 10
     if current_stop != -1 [
       if length next-stops > 0 [set next-stops but-first next-stops] ;we reached destination, drop first of the list
-
+      
       if length next-stops < required-length[                                      ;get new destination to add to list
         make-weight-matrix
         while [length next-stops < required-length][
           let last-stop current_stop
           if length next-stops != 0[set last-stop last next-stops]
           let max-weight 0
-          let next-stop 0 ;if we cannot find any next stop, we just wait
+          let next-stop -1 ;if we cannot find any next stop, we just wait
           foreach item last-stop graph[
             let edge-weight matrix:get weight-matrix last-stop ?
             if edge-weight > max-weight[
@@ -242,27 +247,37 @@ to execute-actions
               ]
             ]
           ]
-          ifelse next-stop = 0 [
-            set required-length (required-length - 1) ;we cannot decide about a stop yet
-                                                      ;show next-stops
-          ][
+          if next-stop = -1 [ set next-stop one-of item last-stop graph
+            ;show "picked a random one"
+            ;we cannot decide about a stop yet so we pick the first which is connected to the last stop
+            ;show next-stops
+          ]
           set next-stops lput next-stop next-stops
           ;show next-stops
-          ]
+          
         ]
       ]
-     write "Doing bus actions"
-     bus-actions
+      ;     write "Doing bus actions"
+      bus-actions
     ]
   ]
-
-  if bus_id = 24 [create-new-capacity]
+  
+  if bus_id = 24 [create-new-capacity
+    ;    write "total-capacity is" show total-capacity
+    ;    write "waiting-passengers is" show waiting-passengers 
+    ;    write "number of passengers in bus is" show (capacity - free-space)
+    
+  ]
   if (current_stop = -1) and (length next-stops > 0)[travel-to item 0 next-stops]
+  ;write "Next stops are" show next-stops
+  ;write "There are X passengers in bus" show (capacity - free-space) 
 end
 
 to create-new-capacity
   while [waiting-passengers > 0.8 * total-capacity]
-  [ add-bus 2
-    set total-capacity (total-capacity + 60)
+  [ add-bus 3
+    ;show "initialized a new bus"
+    set total-capacity (total-capacity + 150)
+    ;write "the new total-capacity is" show total-capacity
   ]
 end
