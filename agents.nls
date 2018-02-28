@@ -35,7 +35,7 @@ buses-own [
 
 ; Not allowed to create new global variables!!!
 
-globals [graph dijkstra-lookup-table]
+globals [graph]
 
 to init-buses
   ; Initialize your agents here.
@@ -90,7 +90,7 @@ to init-buses
       [1 13 14 19]] ; 23   - Zuid
 
     set connectivity-matrix init-connectivity-matrix
-    set dijkstra-lookup-table make-route-lookup-table
+    set dijkstra_lookup make-route-lookup-table
     set total-capacity capacity
   ]
 end

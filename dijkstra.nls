@@ -29,7 +29,7 @@ to-report make-route-lookup-table
 end
 
 to-report get-shortest-route [ s d] 
-  let departure-row item s dijkstra-lookup-table
+  let departure-row item s dijkstra_lookup
   report item d departure-row  
 end
 
