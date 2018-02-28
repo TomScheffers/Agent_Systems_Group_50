@@ -31,6 +31,7 @@ buses-own [
   spawner         ; 0 for no spawn; 1, 2 or 3 for bus type spawned
   dijkstra_lookup ; The internal shortest-path lookup table
   passenger-orders;Here we put all bus orders which are off-route, so we know where to drop them off.
+  required-length ; the required route length of the busses 
 ]
 
 ; Not allowed to create new global variables!!!
@@ -47,6 +48,7 @@ to init-buses
   set waiting-passengers 0
   set total-capacity 0
   set passenger-orders []
+  set required-length 10
   if bus_id = 24 [set route-type 2
     set informed true]
   if bus_id = 25 [set bus-route [3 4 5 16 11 1 19 23 14 0 15 18 15 12 22 13 7 17 10 21 20 9 8 2 8 6 8 9]
@@ -227,7 +229,7 @@ to execute-actions
   ]
   if route-type = 2[
     ;show next-stops
-    let required-length 10
+
     if current_stop != -1 [
       if length next-stops > 0 [set next-stops but-first next-stops] ;we reached destination, drop first of the list
       
