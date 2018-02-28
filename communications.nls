@@ -3,7 +3,7 @@ to communication-protocol
   process-inbox
   
   ; This is method for sending a total status to all buses
-  if remainder ticks 2 = 0 [ report-status ]
+  ifelse remainder ticks 2 = 0 [ report-status ][ show inbox ]
   
   ; This is a test situation for when a bus is spawned
   if ticks = 10 and bus_id = 24 [
@@ -24,13 +24,14 @@ to report-status
     ask ? [set id bus_id]
     
     ; Enter the things you want to report on here:
-    let status_update []
+    let message ["status"]
+    let content []
+    set content lput free-space content
+    set content lput previous_stop content
+    set content lput next-stops content
+    set message lput content message
     
-    set status_update lput free-space status_update
-    set status_update lput previous_stop status_update
-    set status_update lput next-stops status_update
-    
-    ;send-message id status_update
+    send-message id message
     
   ]
 
@@ -49,25 +50,52 @@ to process-inbox
 
   foreach inbox [
     let message ?
-    if item 2 message = "requesting_info" [
+    
+    if item 0 item 2 message = "requesting_info" [
       ; Create a list of instructions to requested backup. 
-      send-message item 1 message "sending_info"
-      set spawner 0
+      
+      let reply ["sending_info"]
+      let content []
+      
+      ; set content lput your_content content
+
+      set reply lput content reply
+      
+      send-message item 1 message reply
+      set spawner 0 ; Spawning done and passing information complete.
+      
     ]
-    if item 2 message = "sending_info" [
+    
+    if item 0 item 2 message = "sending_info" [
+      
+      ; taking values from message and store them in own instance variables
+      
       set informed true
-      ; ...take the information from the message and store in initialization variables 
     ]
+    
+    
+    if item 0 item 2 message = "requesting_vote" [
+      ; TODO: implement function to process self-interest, and return preference
+      send-message item 1 message "sending_vote"
+    ]
+    
+    
+    if item 0 item 2 message = "sending_vote" [
+      ; TODO; implement function to store all votes and take action. Clear votes once action has been taken.
+    ]
+
   ]
   
-  clear-inbox
+  ;clear-inbox
 
 end
 
 
 
 to request-info
-  ;show "calling request-info method"
+  
+  ; This method is called by a newborn only and sends a message to its parent requesting for information.
+  
   let id 0
   foreach (list other buses) [
     ask ? [
