@@ -2,8 +2,10 @@ to communication-protocol
   
   process-inbox
   
-  ; This is method for sending a total status to all buses
-  ifelse remainder ticks 2 = 0 [ report-status ][ show inbox ]
+  if spawn_request = 0 [
+    ; Don't check again if there is already a spawn_request pending
+    set spawn_request check-capacity
+  ]
   
   ; This is a test situation for when a bus is spawned
   if ticks = 10 and bus_id = 24 [
@@ -12,29 +14,34 @@ to communication-protocol
   
   ; This is a dedicated placeholder for buses that have no instructions yet
   if informed = false [
+    show "Requesting information..."
     request-info
   ]
-  
+
 end
 
 to report-status
 
   let id 0
+  
   foreach (list other buses) [
     ask ? [set id bus_id]
     
-    ; Enter the things you want to report on here:
-    let message ["status"]
-    let content []
-    set content lput free-space content
-    set content lput previous_stop content
-    set content lput next-stops content
-    set message lput content message
-    
-    send-message id message
-    
+    if id != 0 [ 
+      
+      ; Enter the things you want to report on here:
+      let message ["status"]
+      let content []
+      set content lput free-space content
+      set content lput previous_stop content
+      set content lput next-stops content
+      set message lput content message
+      
+      send-message id message
+      
+    ]
   ]
-
+  
 end
 
 to spawn-bus [b_type]
@@ -51,42 +58,59 @@ to process-inbox
   foreach inbox [
     let message ?
     
-    if item 0 item 2 message = "requesting_info" [
-      ; Create a list of instructions to requested backup. 
+    let message_type (item 0 item 2 message)
+        
+    if message_type = "requesting_info" [
+      ; Create a list of instructions for the newborn. 
       
       let reply ["sending_info"]
       let content []
       
-      ; set content lput your_content content
+      set content lput dijkstra_lookup content
+      set content lput connectivity-matrix content
+      set content lput route-type content
+      ; set content lput 10 content
 
+      ; set content lput your_content content
       set reply lput content reply
-      
-      send-message item 1 message reply
-      set spawner 0 ; Spawning done and passing information complete.
-      
+
+      ; send the message to spawnee
+      send-message (item 1 message) reply
+
+      ; Spawning done and passing information complete.
+      set spawner 0
+
     ]
     
-    if item 0 item 2 message = "sending_info" [
+    
+    if message_type = "sending_info" [
       
-      ; taking values from message and store them in own instance variables
+      let content (item 1 item 2 message)
       
+      set dijkstra_lookup (item 0 content)
+      set connectivity-matrix (item 1 content)
+      set route-type (item 2 content)
+      ; set route-length (item 3 content)
+
+      ; Also store the direction when you need to be!
+
       set informed true
     ]
-    
-    
-    if item 0 item 2 message = "requesting_vote" [
+
+
+    if message_type = "requesting_vote" [
       ; TODO: implement function to process self-interest, and return preference
       send-message item 1 message "sending_vote"
     ]
     
     
-    if item 0 item 2 message = "sending_vote" [
+    if message_type = "sending_vote" [
       ; TODO; implement function to store all votes and take action. Clear votes once action has been taken.
     ]
 
   ]
   
-  ;clear-inbox
+  clear-inbox
 
 end
 
@@ -99,14 +123,31 @@ to request-info
   let id 0
   foreach (list other buses) [
     ask ? [
-      if spawner > 0 [set id bus_id]
+      if spawner > 0 [set id bus_id stop]
     ]
   ]
   
-  send-message id "requesting_info"
+  if id != 0 [
+    send-message id ["requesting_info" [0]]
+  ]
   
 end
 
+
+
+to-report check-capacity
+  
+  let distress 0
+  
+  ; expand this to call for each bus type. return 0 if no additional bus is required.
+
+  if capacity > 0.8 [
+    set distress 1
+  ]
+  
+  report distress
+  
+end
 
 
 to clear-inbox

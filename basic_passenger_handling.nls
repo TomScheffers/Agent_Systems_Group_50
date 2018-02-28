@@ -1,11 +1,12 @@
 to bus-actions
-;    show bus_passengers
-;    show free-space
-;    show passenger-orders 
-  drop-passengers
-  pick-up-drop-same-station
-  pickup-passengers
-  move-to-next
+  
+  if informed = true [
+    drop-passengers
+    pick-up-drop-same-station
+    pickup-passengers
+    move-to-next
+  ]
+  
 end
 
 
@@ -17,12 +18,12 @@ to pickup-passengers
     let pick-up 0
     let id item 0 ?
     let goal item 1 ?
-;    show id
-;    show goal
+    ; show id
+    ; show goal
     ifelse member? goal next-stops and free-space > 0[     ;This checks if the goal is en route
       
-;      write "Picked up passenger with a goal on route with id:"
-;      show id
+      ; write "Picked up passenger with a goal on route with id:"
+      ; show id
       pick-up-passenger id
       set free-space (free-space - 1)
       
@@ -45,8 +46,8 @@ to pickup-passengers
       set passenger-orders lput order passenger-orders
       pick-up-passenger id
       set free-space (free-space - 1)
-;      write "Picked up passenger with a goal not route with id:"
-;      show id
+      ;write "Picked up passenger with a goal not route with id:"
+      ;show id
     ]
     ]
   ]

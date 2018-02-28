@@ -29,6 +29,7 @@ buses-own [
   
   informed        ; True or False, by default False at birth set to true once instructions have been given
   spawner         ; 0 for no spawn; 1, 2 or 3 for bus type spawned
+  spawn_request   ; 0 for no spawn request, 1 2 or 3 for bus type request
   dijkstra_lookup ; The internal shortest-path lookup table
   passenger-orders;Here we put all bus orders which are off-route, so we know where to drop them off.
   required-length ; the required route length of the busses 
@@ -49,20 +50,10 @@ to init-buses
   set total-capacity 0
   set passenger-orders []
   set required-length 10
+  
   if bus_id = 24 [set route-type 2
-    set informed true]
-  if bus_id = 25 [set bus-route [3 4 5 16 11 1 19 23 14 0 15 18 15 12 22 13 7 17 10 21 20 9 8 2 8 6 8 9]
-    set connectivity-matrix init-connectivity-matrix
-    set dijkstra_lookup make-route-lookup-table
-    set route-type 0
-    set next-stops bus-route
-    set informed true]
-  if bus_id = 26 [set bus-route [3 4 5 16 11]
-    set connectivity-matrix init-connectivity-matrix
-    set dijkstra_lookup make-route-lookup-table    set route-type 1]
-  if bus_id > 26 [set route-type 2
-    set connectivity-matrix init-connectivity-matrix
-    set dijkstra_lookup make-route-lookup-table]
+                  set informed true]
+
   if bus_type = 1 [set capacity 12]
   if bus_type = 2 [set capacity 60]
   if bus_type = 3 [set capacity 150]
@@ -98,7 +89,6 @@ to init-buses
     set connectivity-matrix init-connectivity-matrix
     set dijkstra_lookup make-route-lookup-table
     set total-capacity capacity
-    show "bus24 initialized"
   ]
 end
 
@@ -278,8 +268,9 @@ end
 to create-new-capacity
   while [waiting-passengers > 0.8 * total-capacity]
   [ add-bus 3
-    ;show "initialized a new bus"
+    show "initialized a new bus"
     set total-capacity (total-capacity + 150)
     ;write "the new total-capacity is" show total-capacity
+    set spawner 1
   ]
 end
