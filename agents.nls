@@ -33,6 +33,7 @@ buses-own [
   dijkstra_lookup ; The internal shortest-path lookup table
   passenger-orders;Here we put all bus orders which are off-route, so we know where to drop them off.
   required-length ; the required route length of the busses 
+  stop-bias       ; personal bias of each bus to a certain bus stop
 ]
 
 ; Not allowed to create new global variables!!!
@@ -53,6 +54,10 @@ to init-buses
   
   if bus_id = 24 [set route-type 2
                   set informed true]
+  
+  set stop-bias one-of [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
+  
+  write "stop bias is" show stop-bias
 
   if bus_type = 1 [set capacity 12]
   if bus_type = 2 [set capacity 60]
@@ -142,24 +147,32 @@ to make-weight-matrix
     ]
   ]
   
-  foreach bus_passengers[
-    let id item 0 ?
-    let goal item 1 ?
-    let shortest-route get-shortest-route current_stop goal
-    
-    let begin-node current_stop
-    let weight 1 / (length shortest-route)
-    if length shortest-route > 1 [
-      foreach shortest-route[
-        let end-node ?
-        if end-node != begin-node[
-          matrix:set K begin-node end-node (matrix:get K begin-node end-node + weight * 5)
-          set counter3 (counter3 + weight)
-          set begin-node end-node
-        ]
-      ]
-    ]
-  ]
+;  foreach bus_passengers[
+;    let id item 0 ?
+;    let goal item 1 ?
+;    let shortest-route get-shortest-route current_stop goal
+;    
+;    let begin-node current_stop
+;    let weight 1 / (length shortest-route)
+;    if length shortest-route > 1 [
+;      foreach shortest-route[
+;        let end-node ?
+;        if end-node != begin-node[
+;          matrix:set K begin-node end-node (matrix:get K begin-node end-node + weight * 5)
+;          set counter3 (counter3 + weight)
+;          set begin-node end-node
+;        ]
+;      ]
+;    ]
+;  ]
+
+  let alfa 5
+  
+  matrix:set-row K stop-bias map [? * ( 1 + alfa ) ] matrix:get-row K stop-bias 
+  matrix:set-column K stop-bias map [? * ( 1 + alfa ) ] matrix:get-column K stop-bias
+  matrix:set K stop-bias stop-bias (matrix:get K stop-bias stop-bias) / (1 + alfa) 
+  
+  
   ;write "Counter1 is"
   ;show counter1
   ;write "Counter2 is"
