@@ -49,6 +49,11 @@ to pickup-passengers
       ;write "Picked up passenger with a goal not route with id:"
       ;show id
     ]
+    if pick-up = 0 and free-space > 0[
+      ;Here we want to pick up passengers which are off-route, have no stops on the shortest route, but gain from riding the bus
+      
+      
+      ]
     ]
   ]
   ;show passenger-orders
