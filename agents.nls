@@ -30,11 +30,16 @@ buses-own [
   informed        ; True or False, by default False at birth set to true once instructions have been given
   spawner         ; 0 for no spawn; 1, 2 or 3 for bus type spawned
   spawn_request   ; 0 for no spawn request, 1 2 or 3 for bus type request
+  parent_of       ; The list of IDs of the agent's children
+  last_newborn    ; 0
+  
   dijkstra_lookup ; The internal shortest-path lookup table
   passenger-orders;Here we put all bus orders which are off-route, so we know where to drop them off.
   required-length ; the required route length of the busses 
   stop-bias       ; personal bias of each bus to a certain bus stop
   num-busses      ; the number of busses
+  
+  
 ]
 
 ; Not allowed to create new global variables!!!
@@ -45,6 +50,8 @@ to init-buses
   ; Initialize your agents here.
   set informed false
   set spawner 0
+  set parent_of []
+  set last_newborn bus_id
   set direction 1
   set next-stops []
   
@@ -57,13 +64,14 @@ to init-buses
     set informed true]
   
   set stop-bias one-of [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
-  
-  write "stop bias is" show stop-bias
+
+  write "creating " show bus_id
   
   if bus_type = 1 [set capacity 12]
   if bus_type = 2 [set capacity 60]
   if bus_type = 3 [set capacity 150]
   set free-space capacity
+  
   
   if bus_id = 24 [
     ; This list contains the topology of the entire network of bus stops, which is known to all agents. You can use this, for instance, to calculate the shortest path between two bus stops.
@@ -97,6 +105,8 @@ to init-buses
     set total-capacity capacity
     
     set num-busses 1
+
+    
   ]
 end
 
