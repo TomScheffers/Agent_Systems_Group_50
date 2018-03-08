@@ -21,7 +21,7 @@ buses-own [
   capacity        ; Capacity of the bus
   free-space      ; Current free space in the bus
   route-type      ; Circle (0)/line (1)/graph-based(2): true for line, false for circle
-  connectivity-matrix ; The connectivity matrix
+
   
   waiting-passengers; This contains the total number of travellers in the system
   total-capacity  ; This contains the total capacity of all busses (only known by bus 24)
@@ -93,17 +93,11 @@ to init-buses
       [0 12 13 21]  ; 22   - Wibautstraat
       [1 13 14 19]] ; 23   - Zuid
     
-    set connectivity-matrix init-connectivity-matrix
     set dijkstra_lookup make-route-lookup-table
     set total-capacity capacity
     
     set num-busses 1
     set percentage-filled 0.0
-    
-    show dijkstra 18 23
-    show dijkstra 14 15
-    show dijkstra 23 0
-    
   ]
 end
 

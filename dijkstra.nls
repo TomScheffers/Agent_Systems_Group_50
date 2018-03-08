@@ -1,6 +1,4 @@
 extensions [nw matrix]
-links-own [weight]
-  
 
 to-report dijkstra [ s d ]
   
@@ -23,8 +21,6 @@ to-report dijkstra [ s d ]
   
   ask bus_stop s [set path nw:path-to bus_stop d  ]
   
-  show path
-  
   foreach path [ let sub-path ? 
     ask sub-path [set start-point end1
       set end-point end2 
@@ -42,7 +38,22 @@ to-report dijkstra [ s d ]
   ]
   
   report path-index-list
-
 end
 
+to-report make-route-lookup-table 
+  let bus-stops n-values 24 [?]
+  let route-lookup-table []
+  foreach bus-stops [let i ?
+    let stop-lookup-table []
+    foreach bus-stops[let j ?
+      set stop-lookup-table lput dijkstra i j stop-lookup-table
+    ]
+    set route-lookup-table lput stop-lookup-table route-lookup-table
+  ]
+  report route-lookup-table  
+end
 
+to-report get-shortest-route [ s d] 
+  let departure-row item s dijkstra_lookup
+  report item d departure-row  
+end
