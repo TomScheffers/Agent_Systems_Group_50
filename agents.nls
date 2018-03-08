@@ -152,12 +152,12 @@ to make-weight-matrix
     ]
   ]
   
-  ;2) Weight matrix of people in the bus
+  ;3) Weight matrix of people in the bus
   foreach bus_passengers[
     let id item 0 ?
     let goal item 1 ?
     let shortest-route get-shortest-route current_stop goal
-      
+    
     let begin-node current_stop
     let weight 1 / (length shortest-route)
     if length shortest-route > 1 [
@@ -265,15 +265,16 @@ to execute-actions
   ]
   
   ;if bus_id = 24 [create-new-capacity
-    ;    write "total-capacity is" show total-capacity
-    ;    write "waiting-passengers is" show waiting-passengers 
-    ;    write "number of passengers in bus is" show (capacity - free-space)
-    
+  ;    write "total-capacity is" show total-capacity
+  ;    write "waiting-passengers is" show waiting-passengers 
+  ;    write "number of passengers in bus is" show (capacity - free-space)
+  
   ;]
   if (current_stop = -1) and (length next-stops > 0)[travel-to item 0 next-stops]
   ;write "Next stops are" show next-stops
   ;write "There are X passengers in bus" show (capacity - free-space) 
 end
+
 
 to create-new-capacity
   if num-busses < 20 and waiting-passengers > 0.8 * total-capacity[
