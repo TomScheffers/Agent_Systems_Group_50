@@ -9,8 +9,6 @@ to bus-actions
   
 end
 
-
-
 to pickup-passengers
   ;pick up passengers en route
   let stop-passengers get-passengers-at-stop current_stop
@@ -22,9 +20,6 @@ to pickup-passengers
     ; show id
     ; show goal
     ifelse member? goal next-stops and free-space > 0[     ;This checks if the goal is en route
-      
-      ; write "Picked up passenger with a goal on route with id:"
-      ; show id
       pick-up-passenger id
       set free-space (free-space - 1)
       
@@ -43,6 +38,37 @@ to pickup-passengers
         ]
       ]
     ]
+    if pick-up = 0 and free-space > 0[
+      ;Here we want to pick up passengers which are off-route, have no stops on the shortest route, but gain from riding the bus
+      ;First we determine cumulative travelling distance over our route, then we look for each stop how much we gain where Gain = (old_distance - new_distance)/distance to stop
+      let last-stop current_stop
+      let cumulative-distance 0
+      let old-distance (get-distance-indirect current_stop goal) ;This is direct distance to goal which is the absolute minimum
+      ;write "The route is " show next-stops
+      ;write "Old distance was:" show old-distance
+      
+      let max-gain 0.5
+      foreach next-stops[
+        let next-stop-id ?
+        let dist (get-distance last-stop next-stop-id)
+        set cumulative-distance (cumulative-distance + dist)
+        ;write "Cumulative distance in the route is:" show cumulative-distance
+        set last-stop next-stop-id
+        
+        let new-distance (get-distance-indirect next-stop-id goal)
+        ;write "New distance will be:" show new-distance
+        let gain (old-distance - new-distance) / cumulative-distance
+        ;write "Gain is:" show gain
+        
+        if gain > max-gain[
+          set max-gain gain
+          set order []
+          set pick-up 1
+          set order lput id order
+          set order lput next-stop-id order
+        ]
+      ] 
+    ]
     if pick-up = 1 and free-space > 0[
       set passenger-orders lput order passenger-orders
       pick-up-passenger id
@@ -50,11 +76,6 @@ to pickup-passengers
       ;write "Picked up passenger with a goal not route with id:"
       ;show id
     ]
-    if pick-up = 0 and free-space > 0[
-      ;Here we want to pick up passengers which are off-route, have no stops on the shortest route, but gain from riding the bus
-      
-      
-      ]
     ]
   ]
   ;show passenger-orders
@@ -104,4 +125,25 @@ to pick-up-drop-same-station
       ]
     ]  
   ]
+end
+
+to-report get-distance-indirect [bs1 bs2] ;Here we can get distance between not connected stops
+  let shortest-route (get-shortest-route bs1 bs2)
+  write "Shortest-route" show shortest-route
+  write "start point is"show bs1
+  write "end point is" show bs2
+  let return 0
+  let last-stop -1
+  foreach shortest-route[
+    let next-stop-id ?
+    ifelse last-stop = -1[
+      set last-stop next-stop-id
+      ][
+      write "Getting distance from/to:" show last-stop show next-stop-id
+      let dist (get-distance last-stop next-stop-id)
+      set return (return + dist)
+      set last-stop next-stop-id
+      ]
+    ]
+  report return
 end

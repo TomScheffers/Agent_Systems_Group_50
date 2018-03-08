@@ -18,7 +18,7 @@ for i = 1:length(connections)
    
 end
 
-[e, L] = dijkstra(G,7,19);
+[e, L] = dijkstra(G,24,1);
 
 disp (L - 1)
 

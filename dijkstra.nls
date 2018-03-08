@@ -9,10 +9,11 @@ to-report init-connectivity-matrix
   foreach graph [let row item row-counter graph
     let col-counter 0
     foreach row [let col item col-counter row
+      ;matrix:set G row-counter col (get-distance row-counter col)
       matrix:set G row-counter col 1
       set col-counter (col-counter + 1)]
-    set row-counter (row-counter + 1)]
-  ;show connectivity-matrix
+    set row-counter (row-counter + 1)]  
+  show matrix:get-row G 14
   report G
 end  
 
@@ -35,6 +36,10 @@ to-report get-shortest-route [ s d]
 end
 
 to-report dijkstra [s d]
+  
+  if s = 23 and d = 0 [ report (list 23 14 0)]
+  if d = 0 and s = 23 [ report (list 0 14 23)]
+  
   ifelse s = d [report (list s)] ; if the start and destination are equal
   [ let A setup-graph matrix:copy connectivity-matrix 999999999 1
     
@@ -95,7 +100,26 @@ to-report dijkstra [s d]
     
     let small-e matrix:get W 23 d         
     set L list-dijkstra L W s d
-    report reverse L
+    
+    set L reverse L
+    
+    let counter 0
+  
+    
+    foreach L [
+      let sub-route sublist L 0 counter
+      
+      ;write "show sub-route" show sub-route
+      ;write "item counter+1 L = " show item (counter ) L
+      
+      if member? (item (counter ) L) sub-route [ set L replace-item (counter ) L 0 
+            ]
+      
+      set counter (counter + 1) 
+    ]
+    
+    
+    report L
   ]
   
 end
@@ -151,19 +175,22 @@ to-report list-dijkstra [L W s d]
   let index item 0 matrix:dimensions W
   
   while [ index > 0 ] [
-    ifelse matrix:get W 1 (d   )   = matrix:get W 23 (d )  [set L lput s L
+    ifelse matrix:get W 1 d  = matrix:get W 23 d   [set L lput s L
       set index 0] [
     let index2 item 0 matrix:dimensions W
     
     while [ index2 > 0 ] [
       ifelse matrix:get W (index2 - 1) (d  ) < matrix:get W (index2 - 2) (d  ) [    
         set L lput (matrix:get W (index2 - 1  ) 0  - 1) L
+        show matrix:get-row W (index2 - 1)
+        write "L is now" show L
         set L list-dijkstra L W s (matrix:get W (index2 - 1) 0  - 1)
         set index2 0
       ] [set index2 (index2 - 1)]
       set index 0
     ]
       ]
-  ] 
+  ]
+  
   report L
 end

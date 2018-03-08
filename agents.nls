@@ -35,6 +35,7 @@ buses-own [
   required-length ; the required route length of the busses 
   stop-bias       ; personal bias of each bus to a certain bus stop
   num-busses      ; the number of busses
+  percentage-filled ; the percentage of the bus that is filled with passengers
 ]
 
 ; Not allowed to create new global variables!!!
@@ -58,7 +59,7 @@ to init-buses
   
   set stop-bias one-of [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
   
-  write "stop bias is" show stop-bias
+  ; write "stop bias is" show stop-bias
   
   if bus_type = 1 [set capacity 12]
   if bus_type = 2 [set capacity 60]
@@ -97,6 +98,12 @@ to init-buses
     set total-capacity capacity
     
     set num-busses 1
+    set percentage-filled 0.0
+    
+    show dijkstra 18 23
+    show dijkstra 14 15
+    show dijkstra 23 0
+    
   ]
 end
 
@@ -104,7 +111,7 @@ to make-weight-matrix
   let A 5 ;weight of first matrix
   let B 8 ;weight of second matrix
   let C 1 ;weight of third matrix
-  let alfa 3 ;alpha for the bias  
+  let D 3 ;alpha for the bias  
   let K matrix:make-constant 24 24 0
   let number-of-passenger-at-each-stop count-passengers-at-each-stop
   let all-stops [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
@@ -116,7 +123,7 @@ to make-weight-matrix
     
     let begin-node current_stop
     
-    let weight item value number-of-passenger-at-each-stop / (length shortest-route * 10)
+    let weight item value number-of-passenger-at-each-stop * ( (free-space + 1) / capacity) / (length shortest-route * 10)
     
     foreach shortest-route [
       let end-node ?
@@ -172,9 +179,9 @@ to make-weight-matrix
   ]
   
   ;Bias: here we set the bias on stops for individual busses
-  matrix:set-row K stop-bias map [? * ( 1 + alfa ) ] matrix:get-row K stop-bias 
-  matrix:set-column K stop-bias map [? * ( 1 + alfa ) ] matrix:get-column K stop-bias
-  matrix:set K stop-bias stop-bias (matrix:get K stop-bias stop-bias) / (1 + alfa) 
+  matrix:set-row K stop-bias map [? * ( 1 + D ) ] matrix:get-row K stop-bias 
+  matrix:set-column K stop-bias map [? * ( 1 + D ) ] matrix:get-column K stop-bias
+  matrix:set K stop-bias stop-bias (matrix:get K stop-bias stop-bias) / (1 + D) 
   
   set weight-matrix K
   
@@ -273,15 +280,30 @@ to execute-actions
   if (current_stop = -1) and (length next-stops > 0)[travel-to item 0 next-stops]
   ;write "Next stops are" show next-stops
   ;write "There are X passengers in bus" show (capacity - free-space) 
+  
+  set percentage-filled 100 * (capacity - free-space) / capacity 
+  
+  
 end
 
 
 to create-new-capacity
-  if num-busses < 20 and waiting-passengers > 0.8 * total-capacity[
-    add-bus 3
+  let bus-types [ 2 3]
+  let max-num-busses 200000
+  if num-busses < max-num-busses and waiting-passengers > 0.8 * total-capacity[
+    
+    let bus-type one-of bus-types
+    
+    add-bus bus-type
     set num-busses (num-busses + 1)
-    set total-capacity (total-capacity + 150)
+    
+    ifelse bus-type = 1[
+      set total-capacity (total-capacity + 12)]
+    [ifelse bus-type = 2 
+      [set total-capacity (total-capacity + 60)] 
+      [set total-capacity (total-capacity + 150)]
+    ]    
     set spawner 1
-    write "the number of busses is" show num-busses
+    ; write "the number of busses is" show num-busses
   ]
 end

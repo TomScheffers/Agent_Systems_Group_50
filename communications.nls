@@ -2,7 +2,6 @@ to communication-protocol
   
   process-inbox
   
-  
   ; Use either of these two methods to spawn new buses:
   ; spawn-new-bus?
   

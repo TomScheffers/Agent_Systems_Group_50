@@ -63,5 +63,6 @@ else
     
     e=W(size(W,1),d);
     L = listdijkstra(L,W,s,d);
+    L = fliplr(L);
     end
 end

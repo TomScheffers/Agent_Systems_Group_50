@@ -1015,6 +1015,24 @@ final_average_travelling_time
 1
 11
 
+PLOT
+1096
+611
+1342
+804
+Percent filled bus24
+Ticks
+Percent filled
+0.0
+10.0
+0.0
+150.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "ask buses [ if bus_id = 24 [ plot percentage-filled ] ]"
+
 @#$#@#$#@
 ## WHAT IS IT?
 
