@@ -49,7 +49,7 @@ to setup
   get-daily-ridership-schedule
   update-bus-stops
   setup-costs
-  add-bus 3
+  add-bus 1
   ;add-bus 2
   ask buses [
     show route-type
