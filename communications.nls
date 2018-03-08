@@ -2,8 +2,6 @@ to communication-protocol
 
   process-inbox
 
-
-  
   ; Use either of these two methods to spawn new buses:
   if current_stop != -1 and spawner = 0 [
     spawn-new-bus?
@@ -21,11 +19,11 @@ end
 to report-status
 
   let id 0
-  
+
   foreach (list other buses) [
     ask ? [set id bus_id]
-    
-    if id != 0 [ 
+
+    if id != 0 [
 
       ; Enter the things you want to report on here:
       let message ["status"]
@@ -34,13 +32,13 @@ to report-status
       set content lput previous_stop content
       set content lput next-stops content
       set message lput content message
-      
+
       send-message id message
-      
+
     ]
-    
+
   ]
-  
+
 end
 
 to spawn-bus [b_type]
@@ -49,43 +47,43 @@ to spawn-bus [b_type]
   ; Immediately pass the bus' dijkstra graph knowledge to the newly created bus.
   set spawner b_type
   add-bus b_type
-  
+
   set last_newborn (last_newborn + 1)
   set parent_of lput last_newborn parent_of
-  
+
   ; Distribute newborn to all agents
   communicate-id last_newborn
-  
+
   set spawner 0
-  
+
 end
 
 to process-inbox
-  
+
   let vote_list []
   let vote_participants []
-  
+
   foreach inbox [
     let message ?
-    
+
     let message_type (item 0 item 2 message)
-    
+
     if message_type = "new_bus" [
       let content (item 0 item 1 item 2 message)
       if content > last_newborn [
         set last_newborn content
       ]
     ]
-    
+
     if message_type = "requesting_info" [
-      ; Create a list of instructions for the newborn. 
-      
+      ; Create a list of instructions for the newborn.
+
       let reply ["sending_info"]
       let content []
-      
+
       set content lput dijkstra_lookup content
-      set content lput connectivity-matrix content
-      set content lput route-type content
+      ;set content lput connectivity-matrix content
+      set content lput 2 content
       set content lput next_stop content
       ; set content lput 10 content
 
@@ -98,15 +96,15 @@ to process-inbox
       ; Spawning done and passing information completed
 
     ]
-    
-    
+
+
     if message_type = "sending_info" [
-      
+
       let content (item 1 item 2 message)
-      
+
       set dijkstra_lookup (item 0 content)
-      set connectivity-matrix (item 1 content)
-      set route-type (item 2 content)
+      ;set connectivity-matrix (item 1 content)
+      set route-type (item 1 content)
 
       ; set route-length (item 3 content)
 
@@ -117,25 +115,25 @@ to process-inbox
 
 
     if message_type = "requesting_vote_spawn" [
-      
+
       let reply ["sending_vote"]
       let content []
       set content lput decide-spawn-type content
       set reply lput content reply
-      
+
       send-message (item 1 message) reply
-      
+
       set spawn_request -1 ; indicating that you don't have to spawn
-      
+
     ]
-    
-    
+
+
     if message_type = "sending_vote" [
       ; this is the vote that was received:
       set vote_list lput (item 0 item 1 item 2 message) vote_list
       set vote_participants lput (item 1 message) vote_participants
     ]
-    
+
     if message_type = "done_voting" [
       set spawn_request 0
     ]
@@ -143,62 +141,63 @@ to process-inbox
   ]
 
   if spawn_request > 0 and length vote_list > 0 [
-    
+
     set vote_list lput spawn_request vote_list
     let popular_vote max (modes vote_list) ; modes returns a list, with possibly more than 1 element (when there are ties, pick largest)
     if popular_vote != 0 [
       spawn-bus popular_vote
     ]
     set spawn_request 0
-    
+
     foreach vote_participants [
-      send-message ? ["done_voting" [0]] 
+      send-message ? ["done_voting" [0]]
     ]
   ]
-  
+
   clear-inbox
 
 end
 
 
 to request-info
-  
+
   ; This method is called by a newborn only and sends a message to its parent requesting for information.
-  
+
   let newborn bus_id
   let parent 0
-  
+
   ask other buses [
     if member? newborn parent_of [
-      set parent bus_id 
+      set parent bus_id
     ]
   ]
-  
+
   if parent != 0 [
     send-message parent ["requesting_info" [0]]
   ]
-  
+
 end
 
 
 to-report decide-spawn-type
-  
+
   let prospect 0 ; the number of passengers that will be picked up and dropped off.
-  
+
   if free-space > (0.1 * capacity) [
     report 0
   ]
-  
+
   ; look at how the capacity is going to grow over the next stops
   foreach next-stops [
     let _stop ?
-    let stop_passengers (get-passengers-at-stop _stop) 
-    foreach stop_passengers [ 
+    let stop_passengers (get-passengers-at-stop _stop)
+    foreach stop_passengers [
       let stop_passenger ?
       if member? (item 1 stop_passenger) next-stops [
         set prospect (prospect + 1)
       ]
     ]
+
   ]
 
   set prospect (prospect - length bus_passengers) ; assuming all passengers will be dropped off at the next 10 stops.
@@ -207,7 +206,7 @@ to-report decide-spawn-type
   let backup (form-coalition + free-space)
   ;write "all buses on this leg combined have capacity: " show backup
   if backup > prospect [
-    report 0 
+    report 0
   ]
 
   if prospect >= 150 [
@@ -216,26 +215,26 @@ to-report decide-spawn-type
   if prospect < 150 and prospect >= 60 [
     report 2
   ]
-  
+
   if prospect < 60 and prospect >= 12 [
     report 1
   ]
-  
+
   if prospect < 12 [
     report 0
   ]
-  
+
 end
 
 to spawn-new-bus?
-  if spawn_request = 0 [ 
+  if spawn_request = 0 [
     ; Don't check again if there is already a spawn_request pending
 
     ; if we are above 80% of the bus' capacity
     set spawn_request decide-spawn-type ; finds the type of the bus that we want to spawn
 
     if spawn_request != 0 [
-      
+
       let bus_list []
       ask other buses in-radius 10 [
         set bus_list lput bus_id bus_list
@@ -256,18 +255,18 @@ to spawn-new-bus?
 end
 
 to-report form-coalition
-  
+
   let _next_stop next_stop
   let _previous_stop previous_stop
   let _bus_id bus_id
   let capacities []
-  
+
   ask other buses with [_next_stop = next_stop and _previous_stop = previous_stop] [
     set capacities lput free-space capacities
   ]
-  
+
   report (sum capacities)
-  
+
 end
 
 to clear-inbox
@@ -275,20 +274,19 @@ to clear-inbox
 end
 
 to communicate-id [new_id]
-  
+
   let content []
   let message ["new_bus"]
   set content lput new_id content
   set message lput content message
-  
-  let id_list []  
+
+  let id_list []
   ask other buses [
-    set id_list lput bus_id id_list  
+    set id_list lput bus_id id_list
   ]
 
   foreach id_list [
     send-message ? message
   ]
-  
-end
 
+end
