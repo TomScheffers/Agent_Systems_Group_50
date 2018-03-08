@@ -13,7 +13,7 @@ to-report init-connectivity-matrix
       matrix:set G row-counter col 1
       set col-counter (col-counter + 1)]
     set row-counter (row-counter + 1)]  
-  ;show matrix:get-row G 14
+  show matrix:get-row G 14
   report G
 end  
 
@@ -182,8 +182,8 @@ to-report list-dijkstra [L W s d]
     while [ index2 > 0 ] [
       ifelse matrix:get W (index2 - 1) (d  ) < matrix:get W (index2 - 2) (d  ) [    
         set L lput (matrix:get W (index2 - 1  ) 0  - 1) L
-        ;show matrix:get-row W (index2 - 1)
-        ;write "L is now" show L
+        show matrix:get-row W (index2 - 1)
+        write "L is now" show L
         set L list-dijkstra L W s (matrix:get W (index2 - 1) 0  - 1)
         set index2 0
       ] [set index2 (index2 - 1)]

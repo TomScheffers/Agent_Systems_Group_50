@@ -129,9 +129,9 @@ end
 
 to-report get-distance-indirect [bs1 bs2] ;Here we can get distance between not connected stops
   let shortest-route (get-shortest-route bs1 bs2)
-  write "Shortest-route" show shortest-route
-  write "start point is"show bs1
-  write "end point is" show bs2
+  ;write "Shortest-route" show shortest-route
+  ;write "start point is"show bs1
+  ;write "end point is" show bs2
   let return 0
   let last-stop -1
   foreach shortest-route[
@@ -139,7 +139,7 @@ to-report get-distance-indirect [bs1 bs2] ;Here we can get distance between not 
     ifelse last-stop = -1[
       set last-stop next-stop-id
       ][
-      write "Getting distance from/to:" show last-stop show next-stop-id
+      ;write "Getting distance from/to:" show last-stop show next-stop-id
       let dist (get-distance last-stop next-stop-id)
       set return (return + dist)
       set last-stop next-stop-id
