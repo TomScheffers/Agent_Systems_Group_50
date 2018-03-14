@@ -11,6 +11,10 @@ to communication-protocol
     ; show "Requesting information..."
     request-info
   ]
+  
+  if bus_id = 25 [
+    show total-capacity 
+  ]
 
 end
 
@@ -50,7 +54,7 @@ to spawn-bus [b_type]
   set parent_of lput last_newborn parent_of
 
   ; Distribute newborn to all agents
-  communicate-id last_newborn
+  communicate-id last_newborn b_type
  
 
   let cap_requested 0
@@ -58,8 +62,12 @@ to spawn-bus [b_type]
   if b_type = 1 [ set cap_requested 12 ]
   if b_type = 2 [ set cap_requested 60 ]
   if b_type = 3 [ set cap_requested 150 ]
-
+  
+  ; This records how many capacity is requested by the current agent:
   set spawns_requested (spawns_requested + cap_requested)
+  
+  ; This records how many capacity is requested in total:
+  set total-capacity (total-capacity + cap_requested)
   
   set spawner 0 
 
@@ -76,10 +84,15 @@ to process-inbox
     let message_type (item 0 item 2 message)
 
     if message_type = "new_bus" [
-      let content (item 0 item 1 item 2 message)
-      if content > last_newborn [
-        set last_newborn content
+      let b_id (item 0 item 1 item 2 message)
+      let b_type (item 1 item 1 item 2 message)
+      if b_id > last_newborn [
+        set last_newborn b_id
       ]
+      if b_type = 1 [ set total-capacity (total-capacity + 12) ]
+      if b_type = 2 [ set total-capacity (total-capacity + 60) ]
+      if b_type = 3 [ set total-capacity (total-capacity + 150) ]
+    
     ]
 
     if message_type = "requesting_info" [
@@ -92,7 +105,7 @@ to process-inbox
       ;set content lput connectivity-matrix content
       set content lput 2 content
       set content lput next_stop content
-      ; set content lput 10 content
+      set content lput total-capacity content
 
       ; set content lput your_content content
       set reply lput content reply
@@ -112,7 +125,7 @@ to process-inbox
       set dijkstra_lookup (item 0 content)
       ;set connectivity-matrix (item 1 content)
       set route-type (item 1 content)
-
+      set total-capacity (item 2 content)
       ; set route-length (item 3 content)
 
       ; Also store the direction when you need to be!
@@ -192,7 +205,7 @@ to-report decide-spawn-type
   if free-space > (0.1 * capacity) [
     report 0
   ]
-
+  
   ; look at how the capacity is going to grow over the next stops
   foreach next-stops [
     let _stop ?
@@ -203,11 +216,9 @@ to-report decide-spawn-type
         set prospect (prospect + 1)
       ]
     ]
-
   ]
-
-  set prospect (prospect - length bus_passengers) ; assuming all passengers will be dropped off at the next 10 stops.
-  ; set prospect (prospect * 0.25)
+  
+  set prospect (prospect - length bus_passengers) ; assuming all passengers will be dropped off at the next x stops.
 
   let backup (form-coalition + free-space)
   ;write "all buses on this leg combined have capacity: " show backup
@@ -279,11 +290,12 @@ to clear-inbox
   set inbox []
 end
 
-to communicate-id [new_id]
+to communicate-id [new_id b_type]
 
   let content []
   let message ["new_bus"]
   set content lput new_id content
+  set content lput b_type content
   set message lput content message
 
   let id_list []
