@@ -19,7 +19,7 @@ to-report dijkstra [ s d ]
   
   set path-list lput item s amsterdam_bus_stops_names path-list
   
-  ask bus_stop s [set path nw:path-to bus_stop d  ]
+  ask bus_stop s [set path nw:weighted-path-to bus_stop d "route_size" ]
   
   foreach path [ let sub-path ? 
     ask sub-path [set start-point end1
