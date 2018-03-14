@@ -12,9 +12,10 @@ to communication-protocol
     request-info
   ]
   
-  if bus_id = 25 [
-    show total-capacity 
+  if bus_id = last_newborn [
+    show total-capacity
   ]
+
 
 end
 
@@ -52,11 +53,8 @@ to spawn-bus [b_type]
 
   set last_newborn (last_newborn + 1)
   set parent_of lput last_newborn parent_of
-
-  ; Distribute newborn to all agents
-  communicate-id last_newborn b_type
- 
-
+  
+  
   let cap_requested 0
   
   if b_type = 1 [ set cap_requested 12 ]
@@ -66,8 +64,13 @@ to spawn-bus [b_type]
   ; This records how many capacity is requested by the current agent:
   set spawns_requested (spawns_requested + cap_requested)
   
+  
+  
   ; This records how many capacity is requested in total:
   set total-capacity (total-capacity + cap_requested)
+  
+  ; Distribute newborn to all agents
+  communicate-id last_newborn total-capacity
   
   set spawner 0 
 
@@ -84,15 +87,17 @@ to process-inbox
     let message_type (item 0 item 2 message)
 
     if message_type = "new_bus" [
+      
+      
+      
       let b_id (item 0 item 1 item 2 message)
-      let b_type (item 1 item 1 item 2 message)
+      let new_cap (item 1 item 1 item 2 message)
       if b_id > last_newborn [
         set last_newborn b_id
       ]
-      if b_type = 1 [ set total-capacity (total-capacity + 12) ]
-      if b_type = 2 [ set total-capacity (total-capacity + 60) ]
-      if b_type = 3 [ set total-capacity (total-capacity + 150) ]
-    
+      
+      set total-capacity new_cap
+      
     ]
 
     if message_type = "requesting_info" [
@@ -104,7 +109,7 @@ to process-inbox
       set content lput dijkstra_lookup content
       ;set content lput connectivity-matrix content
       set content lput 2 content
-      set content lput next_stop content
+      
       set content lput total-capacity content
 
       ; set content lput your_content content
@@ -125,6 +130,7 @@ to process-inbox
       set dijkstra_lookup (item 0 content)
       ;set connectivity-matrix (item 1 content)
       set route-type (item 1 content)
+      
       set total-capacity (item 2 content)
       ; set route-length (item 3 content)
 
@@ -290,19 +296,21 @@ to clear-inbox
   set inbox []
 end
 
-to communicate-id [new_id b_type]
+to communicate-id [new_id new_total_cap]
 
   let content []
   let message ["new_bus"]
   set content lput new_id content
-  set content lput b_type content
+  set content lput new_total_cap content
   set message lput content message
 
   let id_list []
   ask other buses [
     set id_list lput bus_id id_list
   ]
-
+  
+  show new_total_cap
+  
   foreach id_list [
     send-message ? message
   ]
