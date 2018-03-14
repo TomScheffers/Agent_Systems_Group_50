@@ -30,6 +30,7 @@ buses-own [
   informed        ; True or False, by default False at birth set to true once instructions have been given
   spawner         ; 0 for no spawn; 1, 2 or 3 for bus type spawned
   spawn_request   ; 0 for no spawn request, 1 2 or 3 for bus type request
+  spawns_requested; number of capacity requested
   parent_of       ; The list of IDs of the agent's children
   last_newborn    ; 0
   
@@ -53,6 +54,7 @@ to init-buses
   set last_newborn bus_id
   set direction 1
   set next-stops []
+  set spawns_requested 0
   
   set waiting-passengers 0
   set total-capacity 0
