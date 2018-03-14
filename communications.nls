@@ -54,7 +54,6 @@ to spawn-bus [b_type]
   set last_newborn (last_newborn + 1)
   set parent_of lput last_newborn parent_of
   
-  
   let cap_requested 0
   
   if b_type = 1 [ set cap_requested 12 ]
@@ -63,8 +62,6 @@ to spawn-bus [b_type]
   
   ; This records how many capacity is requested by the current agent:
   set spawns_requested (spawns_requested + cap_requested)
-  
-  
   
   ; This records how many capacity is requested in total:
   set total-capacity (total-capacity + cap_requested)
@@ -232,18 +229,22 @@ to-report decide-spawn-type
     report 0
   ]
 
-  if prospect >= 150 [
+  ; average of waiting passengers per stop:
+  set prospect ( prospect / ( length next-stops))
+
+  if prospect >= 50 [
     report 3
   ]
-  if prospect < 150 and prospect >= 60 [
+  
+  if prospect < 50 and prospect >= 30 [
     report 2
   ]
 
-  if prospect < 60 and prospect >= 12 [
+  if prospect < 30 and prospect >= 10 [
     report 1
   ]
 
-  if prospect < 12 [
+  if prospect < 10 [
     report 0
   ]
 
