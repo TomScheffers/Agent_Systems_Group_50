@@ -12,10 +12,6 @@ to communication-protocol
     request-info
   ]
   
-  if bus_id = last_newborn [
-    show total-capacity
-  ]
-
 
 end
 
@@ -232,19 +228,19 @@ to-report decide-spawn-type
   ; average of waiting passengers per stop:
   set prospect ( prospect / ( length next-stops))
 
-  if prospect >= 50 [
+  if prospect >= 30 [
     report 3
   ]
   
-  if prospect < 50 and prospect >= 30 [
+  if prospect < 30 and prospect >= 20 [
     report 2
   ]
 
-  if prospect < 30 and prospect >= 10 [
+  if prospect < 20 and prospect >= 15 [
     report 1
   ]
 
-  if prospect < 10 [
+  if prospect < 15 [
     report 0
   ]
 
