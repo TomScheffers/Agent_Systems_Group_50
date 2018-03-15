@@ -1,3 +1,4 @@
+; THIS IS THE MAIN FUNCTION EXECUTED BY EVERY AGENT AT EVERY TICK:
 to communication-protocol
 
   process-inbox
@@ -15,60 +16,7 @@ to communication-protocol
 
 end
 
-to report-status
-
-  let id 0
-
-  foreach (list other buses) [
-    ask ? [set id bus_id]
-
-    if id != 0 [
-
-      ; Enter the things you want to report on here:
-      let message ["status"]
-      let content []
-      set content lput free-space content
-      set content lput previous_stop content
-      set content lput next-stops content
-      set message lput content message
-
-      send-message id message
-
-    ]
-
-  ]
-
-end
-
-to spawn-bus [b_type]
-
-  ; call this function if a bus thinks it needs to spawn a bus.
-  ; Immediately pass the bus' dijkstra graph knowledge to the newly created bus.
-  set spawner b_type
-  add-bus b_type
-
-  set last_newborn (last_newborn + 1)
-  set parent_of lput last_newborn parent_of
-  
-  let cap_requested 0
-  
-  if b_type = 1 [ set cap_requested 12 ]
-  if b_type = 2 [ set cap_requested 60 ]
-  if b_type = 3 [ set cap_requested 150 ]
-  
-  ; This records how many capacity is requested by the current agent:
-  set spawns_requested (spawns_requested + cap_requested)
-  
-  ; This records how many capacity is requested in total:
-  set total-capacity (total-capacity + cap_requested)
-  
-  ; Distribute newborn to all agents
-  communicate-id last_newborn total-capacity
-  
-  set spawner 0 
-
-end
-
+; THIS METHOD ITERATES THROUGH THE INBOX
 to process-inbox
 
   let vote_list []
@@ -80,8 +28,6 @@ to process-inbox
     let message_type (item 0 item 2 message)
 
     if message_type = "new_bus" [
-      
-      
       
       let b_id (item 0 item 1 item 2 message)
       let new_cap (item 1 item 1 item 2 message)
@@ -177,7 +123,7 @@ to process-inbox
 
 end
 
-
+; THIS METHOD SENDS MESSAGES FROM NEWBORNS TO PARENTS, REQUESTING FOR INFO
 to request-info
 
   ; This method is called by a newborn only and sends a message to its parent requesting for information.
@@ -197,6 +143,7 @@ to request-info
 end
 
 
+; THIS METHOD DECIDES WHAT KIND OF BUS NEED TO BE SPAWNED, SHOULD IT BE NECESSARY
 to-report decide-spawn-type
 
   let prospect 0 ; the number of passengers that will be picked up and dropped off.
@@ -246,6 +193,8 @@ to-report decide-spawn-type
 
 end
 
+
+; THIS METHOD CHECKS WHETHER A BUS THINKS IT IS NECESSARY TO SPAWN A BUS
 to spawn-new-bus?
   if spawn_request = 0 [
     ; Don't check again if there is already a spawn_request pending
@@ -274,6 +223,8 @@ to spawn-new-bus?
   ]
 end
 
+
+; THIS FUNCTION FORMS A COALITION BETWEEN TWO OR MORE BUSES
 to-report form-coalition
 
   let _next_stop next_stop
@@ -289,10 +240,14 @@ to-report form-coalition
 
 end
 
+
+; THIS FUNCTION CLEARS THE INBOX
 to clear-inbox
   set inbox []
 end
 
+
+; THIS FUNCTION COMMUNICATES A NEW BUS ID TO ALL AGENTS
 to communicate-id [new_id new_total_cap]
 
   let content []
@@ -311,5 +266,36 @@ to communicate-id [new_id new_total_cap]
   foreach id_list [
     send-message ? message
   ]
+
+end
+
+
+
+; THIS FUNCTION SPAWNS A NEW AGENT AND INITIATES COMMUNICATION
+to spawn-bus [b_type]
+
+  ; call this function if a bus thinks it needs to spawn a bus.
+  set spawner b_type
+  add-bus b_type
+
+  set last_newborn (last_newborn + 1)
+  set parent_of lput last_newborn parent_of
+  
+  let cap_requested 0
+  
+  if b_type = 1 [ set cap_requested 12 ]
+  if b_type = 2 [ set cap_requested 60 ]
+  if b_type = 3 [ set cap_requested 150 ]
+  
+  ; This records how many capacity is requested by the current agent:
+  set spawns_requested (spawns_requested + cap_requested)
+  
+  ; This records how many capacity is requested in total:
+  set total-capacity (total-capacity + cap_requested)
+  
+  ; Distribute newborn to all agents
+  communicate-id last_newborn total-capacity
+  
+  set spawner 0 
 
 end
