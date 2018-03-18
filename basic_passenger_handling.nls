@@ -5,7 +5,33 @@ to bus-actions
     pick-up-drop-same-station
     pickup-passengers-new
     move-to-next
+    check-to-shutdown
   ]
+  
+end
+
+to check-to-shutdown
+  
+  if free-space / capacity < 0.10 and total-capacity > 100 [
+    
+    let number-of-passenger-at-each-stop count-passengers-at-each-stop
+    
+    let total-waiting-passengers-on-route 0
+    
+    foreach next-stops[
+      let stop-on-route ?
+      set total-waiting-passengers-on-route (total-waiting-passengers-on-route + item ? number-of-passenger-at-each-stop)
+    ]
+    
+    if total-waiting-passengers-on-route < 0.5 * capacity [
+      show "Less than 50% of my capacity is waiting on route"
+      set route-type 3 
+    ]
+  ]
+  
+  
+  
+  
   
 end
 
@@ -165,7 +191,7 @@ to pickup-passengers-new
       let cumulative-distance 0
       let old-distance (get-distance-indirect current_stop goal) ;This is direct distance to goal which is the absolute minimum
       
-      ;write "1) Shortest distance to goal is: " show old-distance
+                                                                 ;write "1) Shortest distance to goal is: " show old-distance
       
       let stop_please 0
       let max-gain 0.3 ;minimum value of gain before we pick up a passenger
@@ -219,8 +245,8 @@ to pickup-passengers-new
         set passenger-orders lput but-last ? passenger-orders
         pick-up-passenger id
         set free-space (free-space - 1)
-        ]
       ]
+    ]
     ;show passenger-orders
   ]
 end
