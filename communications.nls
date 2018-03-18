@@ -1,10 +1,5 @@
 to communication-protocol
   
-  if (inactive-buses != 0) and (not empty? inactive-buses) [
-    show inactive-buses]
-  
-  
-  
   process-inbox
   
   if current_stop != -1 and spawner = 0 [
@@ -94,7 +89,7 @@ to spawn-bus [b_type]
   ; call this function if a bus thinks it needs to spawn a bus.
   ; Immediately pass the bus' dijkstra graph knowledge to the newly created bus.
   
-  ifelse not empty? inactive-buses[ ; if there are no buses so set to active
+  ifelse empty? inactive-buses[ ; if there are no buses so set to active
     
     set spawner b_type
     add-bus b_type

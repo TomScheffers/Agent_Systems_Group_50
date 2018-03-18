@@ -28,11 +28,6 @@ to check-to-shutdown
       set route-type 3 
     ]
   ]
-  
-  
-  
-  
-  
 end
 
 to pickup-passengers
