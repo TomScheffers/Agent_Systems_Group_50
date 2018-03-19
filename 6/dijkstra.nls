@@ -1,0 +1,59 @@
+extensions [nw matrix]
+
+to-report dijkstra [ s d ]
+  
+  if s = d [ report (list s s ) ]
+  
+  nw:set-context bus_stops routes
+  
+  let path 0
+  let point 0
+  
+  let start-halte ""
+  let end-halte ""
+  let start-point ""
+  let end-point ""
+  
+  let path-list []
+  let path-index-list []
+  
+  set path-list lput item s amsterdam_bus_stops_names path-list
+  
+  ask bus_stop s [set path nw:weighted-path-to bus_stop d "route_size" ]
+  
+  foreach path [ let sub-path ? 
+    ask sub-path [set start-point end1
+      set end-point end2 
+    ]
+    ask start-point [set start-halte name]
+    ask end-point [set end-halte name]
+    
+    if not member? start-halte path-list [ set path-list lput start-halte path-list]
+    if not member? end-halte path-list [ set path-list lput end-halte path-list ]
+  ]
+  
+  foreach path-list [
+    let index position ? amsterdam_bus_stops_names
+    set path-index-list lput index path-index-list
+  ]
+  
+  report path-index-list
+end
+
+to-report make-route-lookup-table 
+  let bus-stops n-values 24 [?]
+  let route-lookup-table []
+  foreach bus-stops [let i ?
+    let stop-lookup-table []
+    foreach bus-stops[let j ?
+      set stop-lookup-table lput dijkstra i j stop-lookup-table
+    ]
+    set route-lookup-table lput stop-lookup-table route-lookup-table
+  ]
+  report route-lookup-table  
+end
+
+to-report get-shortest-route [ s d] 
+  let departure-row item s dijkstra_lookup
+  report item d departure-row  
+end

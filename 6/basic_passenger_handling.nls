@@ -1,0 +1,263 @@
+to bus-actions
+  
+  if informed = true [
+    drop-passengers-new
+    pick-up-drop-same-station
+    pickup-passengers-new
+    move-to-next
+    check-to-shutdown
+  ]
+  
+end
+
+to check-to-shutdown
+  
+  if free-space / capacity < 0.10 and total-capacity > 100 [
+    
+    let number-of-passenger-at-each-stop count-passengers-at-each-stop
+    
+    let total-waiting-passengers-on-route 0
+    
+    foreach next-stops[
+      let stop-on-route ?
+      set total-waiting-passengers-on-route (total-waiting-passengers-on-route + item ? number-of-passenger-at-each-stop)
+    ]
+    
+    if total-waiting-passengers-on-route < 0.5 * capacity [
+      show "Less than 50% of my capacity is waiting on route"
+      set route-type 3 
+    ]
+  ]
+end
+
+to pickup-passengers
+  ;pick up passengers en route
+  let stop-passengers get-passengers-at-stop current_stop
+  
+  foreach stop-passengers[
+    let pick-up 0
+    let id item 0 ?
+    let goal item 1 ?
+    ; show id
+    ; show goal
+    ifelse member? goal next-stops and free-space > 0[     ;This checks if the goal is en route
+      pick-up-passenger id
+      set free-space (free-space - 1)
+      
+    ][
+    let shortest-route get-shortest-route current_stop goal ;If the goal is not in next-stops, we check if any of the stops of the shortest route is on our route
+    let order []
+    foreach but-last shortest-route[
+      let short-route-id ?
+      foreach next-stops[
+        let next-stop-id ?
+        if short-route-id = next-stop-id[
+          set order []
+          set pick-up 1
+          set order lput id order
+          set order lput next-stop-id order
+        ]
+      ]
+    ]
+    if pick-up = 0 and free-space > 0[
+      ;Here we want to pick up passengers which are off-route, have no stops on the shortest route, but gain from riding the bus
+      ;First we determine cumulative travelling distance over our route, then we look for each stop how much we gain where Gain = (old_distance - new_distance)/distance to stop
+      let last-stop current_stop
+      let cumulative-distance 0
+      let old-distance (get-distance-indirect current_stop goal) ;This is direct distance to goal which is the absolute minimum
+      let max-gain 0.3
+      
+      foreach next-stops[
+        let next-stop-id ?
+        let dist (get-distance last-stop next-stop-id)
+        set cumulative-distance (cumulative-distance + dist)
+        ;write "Cumulative distance in the route is:" show cumulative-distance
+        set last-stop next-stop-id
+        
+        let new-distance (get-distance-indirect next-stop-id goal)
+        ;write "New distance will be:" show new-distance
+        let gain (old-distance - new-distance) / cumulative-distance
+        ;write "Gain is:" show gain
+        
+        if gain > max-gain[
+          set max-gain gain
+          set order []
+          set pick-up 1
+          set order lput id order
+          set order lput next-stop-id order
+        ]
+      ] 
+    ]
+    if pick-up = 1 and free-space > 0[
+      set passenger-orders lput order passenger-orders
+      pick-up-passenger id
+      set free-space (free-space - 1)
+      ;write "Picked up passenger with a goal not route with id:"
+      ;show id
+    ]
+    ]
+  ]
+  ;show passenger-orders
+end
+
+to drop-passengers
+  foreach bus_passengers[
+    let id item 0 ?
+    let goal item 1 ?
+    if goal = current_stop [
+      drop-off-passenger id
+      set free-space (free-space + 1)
+    ]
+  ]
+  let idx 0
+  foreach passenger-orders[
+    let id item 0 ?
+    let goal item 1 ?
+    ifelse goal = current_stop[
+      ;write "Dropped off passenger with ID:"
+      ;show id
+      drop-off-passenger id
+      set free-space (free-space + 1)
+      set passenger-orders remove-item idx passenger-orders
+    ][
+    set idx idx + 1
+    ]
+  ]
+  ;show passenger-orders
+end
+
+to move-to-next
+  if length next-stops > 0 
+    [travel-to item 0 next-stops]
+  
+end
+
+to pick-up-drop-same-station
+  let stop-passengers get-passengers-at-stop current_stop
+  if free-space > 0 [
+    foreach stop-passengers[
+      let id item 0 ?
+      let goal item 1 ?
+      if goal = current_stop[     ;This checks if the goal is same as current station
+        pick-up-passenger id
+        drop-off-passenger id
+      ]
+    ]  
+  ]
+end
+
+to-report get-distance-indirect [bs1 bs2] ;Here we can get distance between not connected stops
+  let shortest-route (get-shortest-route bs1 bs2)
+  ;write "1.1) The shortest route for this calculation is: " show shortest-route
+  
+  let return 0
+  let last-stop -1
+  foreach shortest-route[
+    let next-stop-id ?
+    ifelse last-stop = -1[
+      set last-stop next-stop-id
+    ][
+    ;write "Getting distance from/to:" show last-stop show next-stop-id
+    let dist (get-distance last-stop next-stop-id)
+    set return (return + dist)
+    set last-stop next-stop-id
+    ]
+  ]
+  report return
+end
+
+to pickup-passengers-new
+  let stop-passengers get-passengers-at-stop current_stop
+  let interesting-passengers []
+  
+  ;write "Route is:" show next-stops
+  ;write "Current stop is:" show current_stop
+  ;write "Stop passengers: " show stop-passengers
+  if free-space > 0[
+    foreach stop-passengers[
+      let pick-up 0
+      let id item 0 ?
+      let goal item 1 ?
+      let info []
+      ;write "0) The goal of the passenger is: " show goal
+      ;Here we want to pick up passengers in a gain based matter. We can then compare with other busses to bid for passengers.
+      ;First we determine cumulative travelling distance over our route, then we look for each stop how much we gain where Gain = (old_distance - new_distance)/distance to stop
+      let last-stop current_stop
+      let cumulative-distance 0
+      let old-distance (get-distance-indirect current_stop goal) ;This is direct distance to goal which is the absolute minimum
+      
+                                                                 ;write "1) Shortest distance to goal is: " show old-distance
+      
+      let stop_please 0
+      let max-gain 0.3 ;minimum value of gain before we pick up a passenger
+      
+      foreach next-stops[
+        let next-stop-id ?
+        if stop_please = 0[
+          ifelse next-stop-id = goal[
+            set max-gain 1
+            set info []
+            set pick-up 1
+            set info lput id info
+            set info lput next-stop-id info
+            set info lput 1 info
+            set interesting-passengers lput info interesting-passengers 
+            set stop_please 1
+          ][
+          let dist (get-distance last-stop next-stop-id)
+          set cumulative-distance (cumulative-distance + dist)
+          ;write "2) Cumulative distance on route:" show cumulative-distance
+          set last-stop next-stop-id
+          
+          let new-distance (get-distance-indirect next-stop-id goal)
+          ;write "3) New shortest distance to goal is: " show new-distance
+          
+          let gain (old-distance - new-distance) / cumulative-distance
+          ;write "4) The gain is: " show gain
+          
+          if gain >= max-gain and stop_please = 0[
+            set max-gain gain
+            set info []
+            set pick-up 1
+            set info lput id info
+            set info lput next-stop-id info
+            set info lput gain info
+          ]
+          ]  
+        ]
+      ] 
+      if pick-up = 1 and stop_please = 0[
+        set interesting-passengers lput info interesting-passengers
+      ] 
+    ]
+    ;show interesting-passengers
+    let sorted-ip sort-by [ item 2 ?1 > item 2 ?2] interesting-passengers 
+    ;show sorted-ip
+    foreach sorted-ip[
+      let id item 0 ?
+      let goal item 1 ?
+      if free-space > 0[
+        set passenger-orders lput but-last ? passenger-orders
+        pick-up-passenger id
+        set free-space (free-space - 1)
+      ]
+    ]
+    ;show passenger-orders
+  ]
+end
+
+
+to drop-passengers-new
+  let idx 0
+  foreach passenger-orders[
+    let id item 0 ?
+    let goal item 1 ?
+    ifelse goal = current_stop[
+      drop-off-passenger id
+      set free-space (free-space + 1)
+      set passenger-orders remove-item idx passenger-orders
+    ][
+    set idx idx + 1
+    ]
+  ]
+end

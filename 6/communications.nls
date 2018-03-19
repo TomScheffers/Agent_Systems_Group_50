@@ -1,0 +1,384 @@
+to communication-protocol
+  
+  process-inbox
+  
+  if current_stop != -1 and spawner = 0 [
+    spawn-new-bus?
+  ]
+  
+  ; This is a dedicated placeholder for buses that have no instructions yet
+  if informed = false [
+    ; show "Requesting information..."
+    request-info
+  ]
+  
+  if (route-type = 3) and ( not member? bus_id inactive-buses)[
+    inform-about-removal
+  ]
+  
+  
+end
+
+to inform-about-removal
+  set inactive-buses lput bus_id inactive-buses
+  
+  show "Removing myself"
+  
+  let message ["bus_removed"]
+  let content []
+  set content lput inactive-buses content
+  set content lput (total-capacity - capacity) content 
+  set message lput content message
+  
+  broadcast-to-everyone message
+end
+
+to inform-about-activating
+  let message ["bus_activated"]
+  let content []
+  set content lput inactive-buses content
+  set content lput (total-capacity - capacity) content 
+  set message lput content message
+  
+  broadcast-to-everyone message  
+end
+
+to broadcast-to-everyone [message]
+  let id_list []
+  ask other buses [
+    set id_list lput bus_id id_list
+  ]
+  
+  set id_list sort-by < id_list
+  
+  foreach id_list [
+    send-message ? message
+  ]
+  
+end
+
+
+to report-status
+  
+  let id 0
+  
+  foreach (list other buses) [
+    ask ? [set id bus_id]
+    
+    if id != 0 [
+      
+      ; Enter the things you want to report on here:
+      let message ["status"]
+      let content []
+      set content lput free-space content ; the 0th element is the free-space
+      set content lput previous_stop content ; 
+      set content lput next-stops content
+      set message lput content message
+      
+      send-message id message
+      show message
+      
+    ]
+    
+  ]
+  
+end
+
+to spawn-bus [b_type]
+  
+  ; call this function if a bus thinks it needs to spawn a bus.
+  ; Immediately pass the bus' dijkstra graph knowledge to the newly created bus.
+  
+  ifelse empty? inactive-buses[ ; if there are no buses so set to active
+    
+    set spawner b_type
+    add-bus b_type
+    
+    set last_newborn (last_newborn + 1)
+    set parent_of lput last_newborn parent_of
+    
+    ; Distribute newborn to all agents
+    communicate-id last_newborn b_type
+    
+    
+    let cap_requested 0
+    
+    if b_type = 1 [ set cap_requested 12 ]
+    if b_type = 2 [ set cap_requested 60 ]
+    if b_type = 3 [ set cap_requested 150 ]
+    
+    ; This records how many capacity is requested by the current agent:
+    set spawns_requested (spawns_requested + cap_requested)
+    
+    ; This records how many capacity is requested in total:
+    set total-capacity (total-capacity + cap_requested)
+    
+    set spawner 0 
+  ]
+  [
+    let bus-to-be-activated one-of inactive-buses
+    show "Activating a previously deactive bus"
+    
+    let message ["set_active"]
+    let content []
+    set message lput content message
+    
+    send-message bus-to-be-activated message
+  ]
+  
+end
+
+to process-inbox
+  
+  let vote_list []
+  let vote_participants []
+  
+  foreach reverse inbox [
+    let message ?
+    
+    let message_type (item 0 item 2 message)
+    
+    if message_type = "new_bus" [
+      let b_id (item 0 item 1 item 2 message)
+      let b_type (item 1 item 1 item 2 message)
+      if b_id > last_newborn [
+        set last_newborn b_id
+      ]
+      if b_type = 1 [ set total-capacity (total-capacity + 12) ]
+      if b_type = 2 [ set total-capacity (total-capacity + 60) ]
+      if b_type = 3 [ set total-capacity (total-capacity + 150) ]
+      
+    ]
+    
+    if message_type = "bus_removed"[
+      set inactive-buses item 0 item 1 item 2 message
+      set total-capacity item 1 item 1 item 2 message
+    ]
+    
+    if message_type = "bus_activated"[
+      set inactive-buses item 0 item 1 item 2 message
+      set total-capacity item 1 item 1 item 2 message
+    ]
+    
+    if message_type = "set_active"[
+      show "I am active"
+      set route-type 2
+      
+      set inactive-buses remove bus_id inactive-buses
+      set total-capacity (total-capacity + capacity)
+      
+      inform-about-activating ; inform everyone that the bus has been activated
+    ]
+    
+    if message_type = "requesting_info" [
+      ; Create a list of instructions for the newborn.
+      
+      let reply ["sending_info"]
+      let content []
+      
+      set content lput dijkstra_lookup content ; the 0th element of the reply is the dijkstra lookup table
+      set content lput 2 content ; the 1st element of the reply if the route-type
+      set content lput total-capacity content ; the 2nd element of the reply is the total-capacity of all the buses combined
+      set content lput inactive-buses content ; the 3rd element of the reply is the list of inactive buses
+      
+                                              ; set content lput your_content content
+      set reply lput content reply
+      
+      ; send the message to spawnee
+      send-message (item 1 message) reply
+      
+      ; Spawning done and passing information completed
+      
+    ]
+    
+    
+    if message_type = "sending_info" [
+      
+      let content (item 1 item 2 message)
+      
+      set dijkstra_lookup (item 0 content)
+      set route-type (item 1 content)
+      set total-capacity (item 2 content)
+      set inactive-buses (item 3 content)
+      ; set route-length (item 3 content)
+      
+      ; Also store the direction when you need to be!
+      
+      set informed true
+    ]
+    
+    
+    if message_type = "requesting_vote_spawn" [
+      
+      let reply ["sending_vote"]
+      let content []
+      set content lput decide-spawn-type content
+      set reply lput content reply
+      
+      send-message (item 1 message) reply
+      
+      set spawn_request -1 ; indicating that you don't have to spawn
+      
+    ]
+    
+    
+    if message_type = "sending_vote" [
+      ; this is the vote that was received:
+      set vote_list lput (item 0 item 1 item 2 message) vote_list
+      set vote_participants lput (item 1 message) vote_participants
+    ]
+    
+    if message_type = "done_voting" [
+      set spawn_request 0
+    ]
+    
+  ]
+  
+  if spawn_request > 0 and length vote_list > 0 [
+    
+    set vote_list lput spawn_request vote_list
+    let popular_vote max (modes vote_list) ; modes returns a list, with possibly more than 1 element (when there are ties, pick largest)
+    if popular_vote != 0 [
+      spawn-bus popular_vote
+    ]
+    set spawn_request 0
+    
+    foreach vote_participants [
+      send-message ? ["done_voting" [0]]
+    ]
+  ]
+  
+  clear-inbox
+  
+end
+
+
+to request-info
+  
+  ; This method is called by a newborn only and sends a message to its parent requesting for information.
+  let newborn bus_id
+  let parent 0
+  
+  ask other buses [
+    if member? newborn parent_of [
+      set parent bus_id
+    ]
+  ]
+  
+  if parent != 0 [
+    send-message parent ["requesting_info" [0]]
+  ]
+  
+end
+
+
+to-report decide-spawn-type
+  
+  let prospect 0 ; the number of passengers that will be picked up and dropped off.
+  
+  if free-space > (0.1 * capacity) [
+    report 0
+  ]
+  
+  ; look at how the capacity is going to grow over the next stops
+  foreach next-stops [
+    let _stop ?
+    let stop_passengers (get-passengers-at-stop _stop)
+    foreach stop_passengers [
+      let stop_passenger ?
+      if member? (item 1 stop_passenger) next-stops [
+        set prospect (prospect + 1)
+      ]
+    ]
+  ]
+  
+  set prospect (prospect - length bus_passengers) ; assuming all passengers will be dropped off at the next x stops.
+  
+  let backup (form-coalition + free-space)
+  ;write "all buses on this leg combined have capacity: " show backup
+  if backup >= prospect or spawns_requested >= prospect [
+    report 0
+  ]
+  
+  if prospect >= 150 [
+    report 3
+  ]
+  if prospect < 150 and prospect >= 60 [
+    report 2
+  ]
+  
+  if prospect < 60 and prospect >= 12 [
+    report 1
+  ]
+  
+  if prospect < 12 [
+    report 0
+  ]
+  
+end
+
+to spawn-new-bus?
+  if spawn_request = 0 [
+    ; Don't check again if there is already a spawn_request pending
+    
+    ; if we are above 80% of the bus' capacity
+    set spawn_request decide-spawn-type ; finds the type of the bus that we want to spawn
+    
+    if spawn_request != 0 [
+      
+      let bus_list []
+      ask other buses in-radius 10 [
+        set bus_list lput bus_id bus_list
+      ]
+      
+      ifelse length bus_list > 0[
+        
+        foreach bus_list [
+          send-message ? ["requesting_vote_spawn" [0]]
+        ]
+        
+      ] [
+      spawn-bus spawn_request
+      set spawn_request 0
+      ]
+    ]
+  ]
+end
+
+to-report form-coalition
+  
+  let _next_stop next_stop
+  let _previous_stop previous_stop
+  let _bus_id bus_id
+  let capacities 0
+  
+  ask other buses with [_next_stop = next_stop and _previous_stop = previous_stop] [
+    set capacities (capacities + free-space)
+  ]
+  
+  report capacities
+  
+end
+
+to clear-inbox
+  set inbox []
+end
+
+to communicate-id [new_id b_type]
+  
+  let content []
+  let message ["new_bus"]
+  set content lput new_id content
+  set content lput b_type content
+  set message lput content message
+  
+  let id_list []
+  ask other buses [
+    set id_list lput bus_id id_list
+  ]
+  
+  foreach id_list [
+    send-message ? message
+  ]
+  
+end
