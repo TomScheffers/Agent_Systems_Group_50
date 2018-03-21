@@ -113,9 +113,9 @@ to init-buses
     set total-capacity capacity
     
     set num-busses 1
-    
-    set percentage-filled 0.0
   ]
+    set percentage-filled 0.0
+  
 end
 
 to make-weight-matrix
@@ -298,37 +298,8 @@ if route-type = 2[
     ]
   ]
   
-  ;if bus_id = 24 [create-new-capacity
-  ;    write "total-capacity is" show total-capacity
-  ;    write "waiting-passengers is" show waiting-passengers 
-  ;    write "number of passengers in bus is" show (capacity - free-space)
-  
-  ;]
   if (current_stop = -1) and (length next-stops > 0)[travel-to item 0 next-stops]
-  ;write "Next stops are" show next-stops
-  ;write "There are X passengers in bus" show (capacity - free-space) 
-  
+
   set percentage-filled 100 * (capacity - free-space) / capacity 
 end
 
-
-to create-new-capacity
-  let bus-types [ 2 3]
-  let max-num-busses 200000
-  if num-busses < max-num-busses and waiting-passengers > 0.8 * total-capacity[
-    
-    let bus-type one-of bus-types
-    
-    add-bus bus-type
-    set num-busses (num-busses + 1)
-    
-    ifelse bus-type = 1[
-      set total-capacity (total-capacity + 12)]
-    [ifelse bus-type = 2 
-      [set total-capacity (total-capacity + 60)] 
-      [set total-capacity (total-capacity + 150)]
-    ]    
-    set spawner 1
-    ; write "the number of busses is" show num-busses
-  ]
-end

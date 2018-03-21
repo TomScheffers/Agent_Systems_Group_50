@@ -19,11 +19,9 @@ to communication-protocol
   
 end
 
-to inform-about-removal
-  set inactive-buses lput bus_id inactive-buses
-  
-  show "Removing myself"
-  
+to inform-about-removal 
+  ; this function informs all other buses that a bus deactivated itself
+  set inactive-buses lput bus_id inactive-buses  
   let message ["bus_removed"]
   let content []
   set content lput inactive-buses content
@@ -34,6 +32,7 @@ to inform-about-removal
 end
 
 to inform-about-activating
+  ; this fucntion informs all other buses that a bus is activated again
   let message ["bus_activated"]
   let content []
   set content lput inactive-buses content
@@ -44,6 +43,7 @@ to inform-about-activating
 end
 
 to broadcast-to-everyone [message]
+  ; this function takes one input argument [message], and sends it to all other buses. 
   let id_list []
   ask other buses [
     set id_list lput bus_id id_list
@@ -161,7 +161,6 @@ to process-inbox
     ]
     
     if message_type = "set_active"[
-      show "I am active"
       set route-type 2
       
       set inactive-buses remove bus_id inactive-buses
