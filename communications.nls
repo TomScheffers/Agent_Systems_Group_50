@@ -172,7 +172,7 @@ to process-inbox
       set content lput total-capacity content ; the 2nd element of the reply is the total-capacity of all the buses combined
       set content lput inactive-buses content ; the 3rd element of the reply is the list of inactive buses
       
-                                              ; set content lput your_content content
+      ; set content lput your_content content
       set reply lput content reply
       
       ; send the message to spawnee
@@ -191,9 +191,9 @@ to process-inbox
       set route-type (item 1 content)
       set total-capacity (item 2 content)
       set inactive-buses (item 3 content)
-      ; set route-length (item 3 content)
-      
-      ; Also store the direction when you need to be!
+    
+      let first-stop one-of item 3 graph ; the first stop is a random stop from Amsterdam CS
+      set next-stops get-shortest-route current_stop first-stop ; the first route is defined by randomness. After that the weight matrix takes over
       
       set informed true
     ]

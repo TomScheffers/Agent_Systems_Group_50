@@ -291,8 +291,6 @@ to make-bid
         set cap (cap - 1)
       ]
     ]
-    write "My bid is:"
-    show passenger-bid  
   ]
   set made-bid 1
 end

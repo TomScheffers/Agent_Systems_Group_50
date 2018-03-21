@@ -109,6 +109,7 @@ to init-buses
       [0 12 13 21]  ; 22   - Wibautstraat
       [1 13 14 19]] ; 23   - Zuid
     
+    show one-of item 3 graph
     set dijkstra_lookup make-route-lookup-table
     set total-capacity capacity
     
