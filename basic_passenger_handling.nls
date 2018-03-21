@@ -12,7 +12,7 @@ end
 
 to check-to-shutdown
   ; function that checks is a bus should shut itself down
-  if free-space / capacity > 0.90 and total-capacity > 100 [
+  if free-space / capacity > 0.95 and total-capacity > 100 [
 
     let number-of-passenger-at-each-stop count-passengers-at-each-stop
     
@@ -23,7 +23,7 @@ to check-to-shutdown
       set total-waiting-passengers-on-route (total-waiting-passengers-on-route + item ? number-of-passenger-at-each-stop)
     ]
     
-    if total-waiting-passengers-on-route < 0.5 * capacity [
+    if total-waiting-passengers-on-route < 0.25 * capacity [
       set route-type 3 
       show "shutting down"
       show inactive-buses

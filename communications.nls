@@ -334,7 +334,14 @@ to spawn-new-bus?
       ask other buses in-radius 10 [
         set bus_list lput bus_id bus_list
       ]
-      
+ 
+      ; remove inactive buses, they can not vote
+      foreach inactive-buses[
+        if member? ? bus_list[
+          set bus_list remove ? bus_list
+        ]
+      ]      
+           
       ifelse length bus_list > 0[
         
         foreach bus_list [
