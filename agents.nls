@@ -40,7 +40,9 @@ buses-own [
   stop-bias       ; personal bias of each bus to a certain bus stop
   num-busses      ; the number of busses
   percentage-filled ; the percentage of the bus that is filled with passengers
-  inactive-buses ; a list of inactive busses, that is communicated between buses
+  inactive-buses  ; a list of inactive busses, that is communicated between buses
+  
+  made-bid        ; this tracks whether a bid was made for passengers at the next stop
 ]
 
 ; Not allowed to create new global variables!!!
@@ -49,6 +51,7 @@ globals [graph]
 
 to init-buses
   ; Initialize your agents here.
+  set made-bid 0
   set informed false
   set spawner 0
   set parent_of []
@@ -241,10 +244,12 @@ to execute-actions
       bus-actions
     ]
   ]
-  if route-type = 2[
+if route-type = 2[
     ;show next-stops
     
-    if current_stop != -1 [
+    ifelse current_stop != -1 [
+      set made-bid 0
+      
       if length next-stops > 0 [set next-stops but-first next-stops] ;we reached destination, drop first of the list
       
       if length next-stops < required-length[                                      ;get new destination to add to list
@@ -275,6 +280,8 @@ to execute-actions
       ]
       ;     write "Doing bus actions"
       bus-actions
+    ][
+    if made-bid = 0 [make-bid]
     ]
   ]
   

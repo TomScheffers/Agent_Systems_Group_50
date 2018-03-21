@@ -3,15 +3,14 @@ to bus-actions
   if informed = true [
     drop-passengers-new
     pick-up-drop-same-station
+    check-to-shutdown    
     pickup-passengers-new
     move-to-next
-    check-to-shutdown
   ]
   
 end
 
 to check-to-shutdown
-  
   if free-space / capacity < 0.10 and total-capacity > 100 [
     
     let number-of-passenger-at-each-stop count-passengers-at-each-stop
@@ -58,35 +57,6 @@ to pickup-passengers
           set order lput next-stop-id order
         ]
       ]
-    ]
-    if pick-up = 0 and free-space > 0[
-      ;Here we want to pick up passengers which are off-route, have no stops on the shortest route, but gain from riding the bus
-      ;First we determine cumulative travelling distance over our route, then we look for each stop how much we gain where Gain = (old_distance - new_distance)/distance to stop
-      let last-stop current_stop
-      let cumulative-distance 0
-      let old-distance (get-distance-indirect current_stop goal) ;This is direct distance to goal which is the absolute minimum
-      let max-gain 0.3
-      
-      foreach next-stops[
-        let next-stop-id ?
-        let dist (get-distance last-stop next-stop-id)
-        set cumulative-distance (cumulative-distance + dist)
-        ;write "Cumulative distance in the route is:" show cumulative-distance
-        set last-stop next-stop-id
-        
-        let new-distance (get-distance-indirect next-stop-id goal)
-        ;write "New distance will be:" show new-distance
-        let gain (old-distance - new-distance) / cumulative-distance
-        ;write "Gain is:" show gain
-        
-        if gain > max-gain[
-          set max-gain gain
-          set order []
-          set pick-up 1
-          set order lput id order
-          set order lput next-stop-id order
-        ]
-      ] 
     ]
     if pick-up = 1 and free-space > 0[
       set passenger-orders lput order passenger-orders
@@ -189,7 +159,7 @@ to pickup-passengers-new
                                                                  ;write "1) Shortest distance to goal is: " show old-distance
       
       let stop_please 0
-      let max-gain 0.3 ;minimum value of gain before we pick up a passenger
+      let max-gain (1 - free-space / capacity) * 0.6 + 0.1 ;minimum value of gain before we pick up a passenger
       
       foreach next-stops[
         let next-stop-id ?
@@ -260,4 +230,74 @@ to drop-passengers-new
     set idx idx + 1
     ]
   ]
+end
+
+to make-bid
+  let next-stop-passengers get-passengers-at-stop next_stop
+  let interesting-passengers []
+  
+  if free-space > 0[
+    foreach next-stop-passengers[
+      let pick-up 0
+      let id item 0 ?
+      let goal item 1 ?
+      let info []
+      
+      let last-stop next_stop
+      let cumulative-distance 0
+      let old-distance (get-distance-indirect next_stop goal) ;This is direct distance to goal which is the absolute minimum
+      
+      let stop_please 0
+      let max-gain (1 - free-space / capacity) * 0.6 + 0.1 ;minimum value of gain before we pick up a passenger
+      
+      foreach but-first next-stops[
+        let next-stop-id ?
+        if stop_please = 0[
+          ifelse next-stop-id = goal[
+            set max-gain 1
+            set info []
+            set pick-up 1
+            set info lput id info
+            set info lput next-stop-id info
+            set info lput 1 info
+            set interesting-passengers lput info interesting-passengers 
+            set stop_please 1
+          ][
+          let dist (get-distance last-stop next-stop-id)
+          set cumulative-distance (cumulative-distance + dist)
+          set last-stop next-stop-id
+          
+          let new-distance (get-distance-indirect next-stop-id goal)
+          
+          let gain (old-distance - new-distance) / cumulative-distance
+          
+          if gain >= max-gain and stop_please = 0[
+            set max-gain gain
+            set info []
+            set pick-up 1
+            set info lput id info
+            set info lput next-stop-id info
+            set info lput gain info
+          ]
+          ]  
+        ]
+      ] 
+      if pick-up = 1 and stop_please = 0[
+        set interesting-passengers lput info interesting-passengers
+      ] 
+    ]
+    ;show interesting-passengers
+    let sorted-ip sort-by [ item 2 ?1 > item 2 ?2] interesting-passengers 
+    let cap free-space
+    let passenger-bid []
+    foreach sorted-ip[
+      if cap > 0[
+        set passenger-bid lput ? passenger-bid
+        set cap (cap - 1)
+      ]
+    ]
+    write "My bid is:"
+    show passenger-bid  
+  ]
+  set made-bid 1
 end
