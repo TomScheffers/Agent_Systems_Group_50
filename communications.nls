@@ -198,8 +198,8 @@ to process-inbox
       set inactive-buses (item 3 content)
       set stop-bias (item 4 content)  
 
-      let first-stop one-of item 3 graph
-      set next-stops get-shortest-route current_stop first-stop
+      let first-stop one-of item 3 graph ; the first stop is a random stop from Amsterdam Centraal
+      set next-stops get-shortest-route current_stop first-stop 
       
       set informed true
     ]

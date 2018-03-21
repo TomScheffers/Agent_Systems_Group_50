@@ -213,35 +213,7 @@ to execute-actions
   
   communication-protocol
   
-  ;  if route-type = 0 [
-  ;    if current_stop != -1 [
-  ;      ;show current_stop
-  ;      set next-stops lput current_stop next-stops
-  ;      set next-stops but-first next-stops
-  ;      
-  ;      bus-actions
-  ;    ]
-  ;  ]
-  ;  if route-type = 1[
-  ;    if current_stop != -1 [                                     ;check if we are not on the road
-  ;      let stop-index position current_stop bus-route             ;we check index of current stop and determine next-stops
-  ;      
-  ;      if (length next-stops) = 1 [
-  ;        write "Reached end, reverting direction!"
-  ;        set direction (direction * -1)]
-  ;      
-  ;      if direction = 1 [
-  ;        set next-stops sublist bus-route (stop-index + 1) length bus-route
-  ;      ]
-  ;      
-  ;      if direction = -1 [
-  ;        set next-stops reverse sublist bus-route 0 stop-index
-  ;      ]
-  ;      bus-actions
-  ;    ]
-  ;  ]
   if route-type = 2[
-    ;show next-stops
     
     ifelse current_stop != -1 [
       set made-bid 0
