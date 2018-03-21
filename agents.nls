@@ -224,6 +224,7 @@ end
 to execute-actions
 
   communication-protocol
+<<<<<<< HEAD
 
   ;  write "Current stop is"
   ;  show current_stop
@@ -258,6 +259,14 @@ to execute-actions
     ;show next-stops
 
     if current_stop != -1 [
+=======
+  
+  if route-type = 2[
+    
+    ifelse current_stop != -1 [
+      set made-bid 0
+      
+>>>>>>> 44156917cef6d414cc3895183f1b70c9ff28d306
       if length next-stops > 0 [set next-stops but-first next-stops] ;we reached destination, drop first of the list
 
       if length next-stops < required-length[                                      ;get new destination to add to list

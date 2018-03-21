@@ -21,11 +21,12 @@ end
 to inform-about-removal
   ; this function is called upon by a bus that deactivates itself. It communicates this to all other buses
   set inactive-buses lput bus_id inactive-buses
+  set total-capacity (total-capacity - capacity)
   
   let message ["bus_removed"]
   let content []
   set content lput inactive-buses content
-  set content lput (total-capacity - capacity) content 
+  set content lput total-capacity content 
   set message lput content message
   
   broadcast-to-everyone message
@@ -33,10 +34,11 @@ end
 
 to inform-about-activating
   ; if a bus is activated from hibernation, it informs all the other buses about this
+  ; the inactive-buses list and total-capacity have already been updated before this function is called
   let message ["bus_activated"]
   let content []
   set content lput inactive-buses content
-  set content lput (total-capacity - capacity) content 
+  set content lput total-capacity content 
   set message lput content message
   
   broadcast-to-everyone message  
@@ -54,7 +56,6 @@ to broadcast-to-everyone [message]
   foreach id_list [
     send-message ? message
   ]
-  
 end
 
 
@@ -77,9 +78,7 @@ to report-status
       
       send-message id message
       show message
-      
     ]
-    
   ]
   
 end
@@ -117,10 +116,10 @@ to spawn-bus [b_type]
   ]
   [
     let bus-to-be-activated one-of inactive-buses
-    show "Activating a previously deactive bus"
     
     let message ["set_active"]
     let content []
+    set content lput previous_stop content ; the 0th element of the message is the previous stop of one that activates a bus, which will be where the new bus goes to
     set message lput content message
     
     send-message bus-to-be-activated message
@@ -133,7 +132,7 @@ to process-inbox
   let vote_list []
   let vote_participants []
   
-  foreach reverse inbox [
+  foreach inbox [
     let message ?
     
     let message_type (item 0 item 2 message)
@@ -160,8 +159,10 @@ to process-inbox
     ]
     
     if message_type = "set_active"[
-      show "I am active"
       set route-type 2
+      
+      let go-to item 0 item 1 item 2 message
+      set next-stops get-shortest-route current_stop go-to ; go to where the parent wants you to go
       
       set inactive-buses remove bus_id inactive-buses
       set total-capacity (total-capacity + capacity)
@@ -198,8 +199,8 @@ to process-inbox
       set inactive-buses (item 3 content)
       set stop-bias (item 4 content)  
 
-      let first-stop one-of item 3 graph
-      set next-stops get-shortest-route current_stop first-stop
+      let first-stop one-of item 3 graph ; the first stop is a random stop from Amsterdam Centraal
+      set next-stops get-shortest-route current_stop first-stop 
       
       set informed true
     ]
