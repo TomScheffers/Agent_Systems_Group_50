@@ -278,7 +278,7 @@ to-report decide-spawn-type
   
   let prospect 0 ; the number of passengers that will be picked up and dropped off.
   
-  if free-space > (0.1 * capacity) [
+  if free-space > (0.20 * capacity) [
     report 0
   ]
   

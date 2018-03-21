@@ -218,11 +218,7 @@ to execute-actions
   ]
   
   if ticks = 15 and bus_id = 25[
-    spawn-bus 2
-  ]
-  
-  if ticks = 25 and bus_id = 26 [
-    spawn-bus 3
+    spawn-bus 1
   ]
 
   communication-protocol
