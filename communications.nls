@@ -118,11 +118,13 @@ to spawn-bus [b_type]
     
     let message ["set_active"]
     let content []
+    
     set content lput previous_stop content ; the 0th element of the message is the previous stop of one that activates a bus, which will be where the new bus goes to
     set message lput content message
     
     send-message bus-to-be-activated message
   ]
+  
   
 end
 
@@ -159,9 +161,12 @@ to process-inbox
     
     if message_type = "set_active"[
       set route-type 2
-      show "Activating a deactive bus" 
+      
       let go-to item 0 item 1 item 2 message
-      set next-stops get-shortest-route current_stop go-to ; go to where the parent wants you to go
+      
+      if (go-to != -1) and (current_stop != -1) and (go-to != current_stop) [
+        set next-stops get-shortest-route current_stop go-to ; go to where the parent wants you to go
+      ]      
       
       set inactive-buses remove bus_id inactive-buses
       set total-capacity (total-capacity + capacity)
@@ -180,7 +185,7 @@ to process-inbox
       set content lput total-capacity content ; the 2nd element of the reply is the total-capacity of all the buses combined
       set content lput inactive-buses content ; the 3rd element of the reply is the list of inactive buses
       set content lput previous_stop content ; the 4th element of the reply is the previous stop of the parent, which will serve as bias for the newbus
-
+      
       set reply lput content reply
       
       ; send the message to spawnee
@@ -197,7 +202,7 @@ to process-inbox
       set total-capacity (item 2 content)
       set inactive-buses (item 3 content)
       set stop-bias (item 4 content)  
-
+      
       let first-stop one-of item 3 graph ; the first stop is a random stop from Amsterdam Centraal
       set next-stops get-shortest-route current_stop first-stop 
       

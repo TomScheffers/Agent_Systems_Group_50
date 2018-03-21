@@ -12,7 +12,7 @@ end
 
 to check-to-shutdown
   ; function that checks is a bus should shut itself down
-  if free-space / capacity < 0.10 and total-capacity > 100 [
+  if free-space / capacity > 0.90 and total-capacity > 100 [
 
     let number-of-passenger-at-each-stop count-passengers-at-each-stop
     

@@ -213,12 +213,16 @@ end
 
 to execute-actions
   
-  show total-capacity
-  
   if ticks = 3 and bus_id = 24[ ; initialize with 3 buses
    spawn-bus 1
-   spawn-bus 2
-   spawn-bus 3
+  ]
+  
+  if ticks = 15 and bus_id = 25[
+    spawn-bus 2
+  ]
+  
+  if ticks = 25 and bus_id = 26 [
+    spawn-bus 3
   ]
 
   communication-protocol
