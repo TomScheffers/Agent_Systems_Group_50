@@ -2,7 +2,7 @@ extensions [nw matrix]
 
 to-report dijkstra [ s d ]
   
-  if s = d [ report (list s s ) ]
+  if s = d [ report (list s d ) ]
   
   nw:set-context bus_stops routes
   
