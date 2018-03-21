@@ -68,8 +68,6 @@ to init-buses
     set informed true
     set inactive-buses [] ]
   
-  set stop-bias one-of [0 1 3 4 5 7 8 9 10 11 12 13 14 15 16 17 19 20 21 22 23]
-  
   ; write "stop bias is" show stop-bias
   
   if bus_type = 1 [set capacity 12
@@ -109,14 +107,13 @@ to init-buses
       [0 12 13 21]  ; 22   - Wibautstraat
       [1 13 14 19]] ; 23   - Zuid
     
-    show one-of item 3 graph
+    set stop-bias one-of [0 1 3 4 5 7 8 9 10 11 12 13 14 15 16 17 19 20 21 22 23]
     set dijkstra_lookup make-route-lookup-table
     set total-capacity capacity
     
     set num-busses 1
   ]
-    set percentage-filled 0.0
-  
+  set percentage-filled 0.0
 end
 
 to make-weight-matrix
@@ -216,36 +213,34 @@ to execute-actions
   
   communication-protocol
   
-  ;  write "Current stop is"
-  ;  show current_stop
-  if route-type = 0 [
-    if current_stop != -1 [
-      ;show current_stop
-      set next-stops lput current_stop next-stops
-      set next-stops but-first next-stops
-      
-      bus-actions
-    ]
-  ]
-  if route-type = 1[
-    if current_stop != -1 [                                     ;check if we are not on the road
-      let stop-index position current_stop bus-route             ;we check index of current stop and determine next-stops
-      
-      if (length next-stops) = 1 [
-        write "Reached end, reverting direction!"
-        set direction (direction * -1)]
-      
-      if direction = 1 [
-        set next-stops sublist bus-route (stop-index + 1) length bus-route
-      ]
-      
-      if direction = -1 [
-        set next-stops reverse sublist bus-route 0 stop-index
-      ]
-      bus-actions
-    ]
-  ]
-if route-type = 2[
+  ;  if route-type = 0 [
+  ;    if current_stop != -1 [
+  ;      ;show current_stop
+  ;      set next-stops lput current_stop next-stops
+  ;      set next-stops but-first next-stops
+  ;      
+  ;      bus-actions
+  ;    ]
+  ;  ]
+  ;  if route-type = 1[
+  ;    if current_stop != -1 [                                     ;check if we are not on the road
+  ;      let stop-index position current_stop bus-route             ;we check index of current stop and determine next-stops
+  ;      
+  ;      if (length next-stops) = 1 [
+  ;        write "Reached end, reverting direction!"
+  ;        set direction (direction * -1)]
+  ;      
+  ;      if direction = 1 [
+  ;        set next-stops sublist bus-route (stop-index + 1) length bus-route
+  ;      ]
+  ;      
+  ;      if direction = -1 [
+  ;        set next-stops reverse sublist bus-route 0 stop-index
+  ;      ]
+  ;      bus-actions
+  ;    ]
+  ;  ]
+  if route-type = 2[
     ;show next-stops
     
     ifelse current_stop != -1 [
@@ -269,17 +264,11 @@ if route-type = 2[
               ]
             ]
           ]
-          if next-stop = -1 [ set next-stop one-of item last-stop graph
-            ;show "picked a random one"
-            ;we cannot decide about a stop yet so we pick the first which is connected to the last stop
-            ;show next-stops
-          ]
-          set next-stops lput next-stop next-stops
-          ;show next-stops
-          
+          if next-stop = -1 [ set next-stop one-of item last-stop graph]
+          ;we cannot decide about a stop yet so we pick the first which is connected to the last stop
+          set next-stops lput next-stop next-stops          
         ]
       ]
-      ;     write "Doing bus actions"
       bus-actions
     ][
     if made-bid = 0 [make-bid]
@@ -289,18 +278,15 @@ if route-type = 2[
   if route-type = 3[
     if current_stop != -1 [
       ifelse empty? next-stops[
-
+        
       ]
-      [
-        set next-stops but-first next-stops ;remove last stop 
-        drop-passengers-new
-        pick-up-drop-same-station
-        move-to-next]
+      [set next-stops but-first next-stops ;remove last stop 
+       drop-passengers-new
+       pick-up-drop-same-station
+       move-to-next]
     ]
   ]
-  
   if (current_stop = -1) and (length next-stops > 0)[travel-to item 0 next-stops]
-
   set percentage-filled 100 * (capacity - free-space) / capacity 
 end
 

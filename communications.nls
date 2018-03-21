@@ -19,9 +19,8 @@ to communication-protocol
 end
 
 to inform-about-removal
+  ; this function is called upon by a bus that deactivates itself. It communicates this to all other buses
   set inactive-buses lput bus_id inactive-buses
-  
-  show "Removing myself"
   
   let message ["bus_removed"]
   let content []
@@ -33,6 +32,7 @@ to inform-about-removal
 end
 
 to inform-about-activating
+  ; if a bus is activated from hibernation, it informs all the other buses about this
   let message ["bus_activated"]
   let content []
   set content lput inactive-buses content
@@ -43,6 +43,7 @@ to inform-about-activating
 end
 
 to broadcast-to-everyone [message]
+  ; function that can be used to send a message to all other buses except to the sender of the message
   let id_list []
   ask other buses [
     set id_list lput bus_id id_list
@@ -178,15 +179,12 @@ to process-inbox
       set content lput 2 content ; the 1st element of the reply if the route-type
       set content lput total-capacity content ; the 2nd element of the reply is the total-capacity of all the buses combined
       set content lput inactive-buses content ; the 3rd element of the reply is the list of inactive buses
-      
-                                              ; set content lput your_content content
+      set content lput previous_stop content ; the 4th element of the reply is the previous stop of the parent, which will serve as bias for the newbus
+
       set reply lput content reply
       
       ; send the message to spawnee
-      send-message (item 1 message) reply
-      
-      ; Spawning done and passing information completed
-      
+      send-message (item 1 message) reply      
     ]
     
     
@@ -198,9 +196,10 @@ to process-inbox
       set route-type (item 1 content)
       set total-capacity (item 2 content)
       set inactive-buses (item 3 content)
-      ; set route-length (item 3 content)
-      
-      ; Also store the direction when you need to be!
+      set stop-bias (item 4 content)  
+
+      let first-stop one-of item 3 graph
+      set next-stops get-shortest-route current_stop first-stop
       
       set informed true
     ]
