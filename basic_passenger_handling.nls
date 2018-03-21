@@ -6,6 +6,7 @@ to bus-actions
     check-to-shutdown    
     pickup-passengers-new
     move-to-next
+    set incoming-bids []
   ]
 end
 
@@ -293,6 +294,7 @@ to make-bid
         set cap (cap - 1)
       ]
     ]
+    set bidding-list passenger-bid
   ]
   set made-bid 1
 end
