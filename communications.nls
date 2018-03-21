@@ -2,6 +2,7 @@ to communication-protocol
   
   process-inbox
   
+  ;if spawner = 0[
   if current_stop != -1 and spawner = 0 [
     spawn-new-bus?
   ]
@@ -278,7 +279,7 @@ to-report decide-spawn-type
   
   let prospect 0 ; the number of passengers that will be picked up and dropped off.
   
-  if free-space > (0.20 * capacity) [
+  if free-space > (0.05 * capacity) [
     report 0
   ]
   
