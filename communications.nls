@@ -54,7 +54,6 @@ to broadcast-to-everyone [message]
   foreach id_list [
     send-message ? message
   ]
-  
 end
 
 
@@ -133,7 +132,7 @@ to process-inbox
   let vote_list []
   let vote_participants []
   
-  foreach reverse inbox [
+  foreach inbox [
     let message ?
     
     let message_type (item 0 item 2 message)
