@@ -15,8 +15,6 @@ to communication-protocol
   if (route-type = 3) and ( not member? bus_id inactive-buses)[
     inform-about-removal
   ]
-  
-  
 end
 
 to inform-about-removal 
@@ -54,9 +52,7 @@ to broadcast-to-everyone [message]
   foreach id_list [
     send-message ? message
   ]
-  
 end
-
 
 to report-status
   
@@ -77,15 +73,11 @@ to report-status
       
       send-message id message
       show message
-      
     ]
-    
   ]
-  
 end
 
 to spawn-bus [b_type]
-  
   ; call this function if a bus thinks it needs to spawn a bus.
   ; Immediately pass the bus' dijkstra graph knowledge to the newly created bus.
   
@@ -253,7 +245,6 @@ end
 
 
 to request-info
-  
   ; This method is called by a newborn only and sends a message to its parent requesting for information.
   let newborn bus_id
   let parent 0
@@ -267,12 +258,10 @@ to request-info
   if parent != 0 [
     send-message parent ["requesting_info" [0]]
   ]
-  
 end
 
 
 to-report decide-spawn-type
-  
   let prospect 0 ; the number of passengers that will be picked up and dropped off.
   
   if free-space > (0.1 * capacity) [
@@ -364,7 +353,6 @@ to clear-inbox
 end
 
 to communicate-id [new_id b_type]
-  
   let content []
   let message ["new_bus"]
   set content lput new_id content
@@ -379,5 +367,4 @@ to communicate-id [new_id b_type]
   foreach id_list [
     send-message ? message
   ]
-  
 end

@@ -7,11 +7,11 @@ to bus-actions
     pickup-passengers-new
     move-to-next
   ]
-  
 end
 
 to check-to-shutdown
-  if free-space / capacity < 0.10 and total-capacity > 100 [
+  ; function that checks is a bus should shut itself down
+  if free-space / capacity < 0.10 and total-capacity > 500 [
     
     let number-of-passenger-at-each-stop count-passengers-at-each-stop
     
@@ -23,7 +23,6 @@ to check-to-shutdown
     ]
     
     if total-waiting-passengers-on-route < 0.5 * capacity [
-      show "Less than 50% of my capacity is waiting on route"
       set route-type 3 
     ]
   ]
@@ -62,12 +61,9 @@ to pickup-passengers
       set passenger-orders lput order passenger-orders
       pick-up-passenger id
       set free-space (free-space - 1)
-      ;write "Picked up passenger with a goal not route with id:"
-      ;show id
     ]
     ]
   ]
-  ;show passenger-orders
 end
 
 to drop-passengers
@@ -212,7 +208,6 @@ to pickup-passengers-new
         set free-space (free-space - 1)
       ]
     ]
-    ;show passenger-orders
   ]
 end
 
@@ -286,7 +281,7 @@ to make-bid
         set interesting-passengers lput info interesting-passengers
       ] 
     ]
-    ;show interesting-passengers
+
     let sorted-ip sort-by [ item 2 ?1 > item 2 ?2] interesting-passengers 
     let cap free-space
     let passenger-bid []
