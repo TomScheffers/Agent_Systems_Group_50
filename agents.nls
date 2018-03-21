@@ -72,7 +72,6 @@ to init-buses
   
   if bus_type = 1 [set capacity 12
     set required-length 7
-    set stop-bias one-of [2 6 18] ]
   if bus_type = 2 [set capacity 60
     set required-length 7]
   if bus_type = 3 [set capacity 150
@@ -261,4 +260,3 @@ to execute-actions
   if (current_stop = -1) and (length next-stops > 0)[travel-to item 0 next-stops]
   set percentage-filled 100 * (capacity - free-space) / capacity 
 end
-
