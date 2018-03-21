@@ -15,11 +15,14 @@ to communication-protocol
   if (route-type = 3) and ( not member? bus_id inactive-buses)[
     inform-about-removal
   ]
+  
 end
 
-to inform-about-removal 
-  ; this function informs all other buses that a bus deactivated itself
-  set inactive-buses lput bus_id inactive-buses  
+to inform-about-removal
+  set inactive-buses lput bus_id inactive-buses
+  
+  show "Removing myself"
+  
   let message ["bus_removed"]
   let content []
   set content lput inactive-buses content
@@ -30,7 +33,6 @@ to inform-about-removal
 end
 
 to inform-about-activating
-  ; this fucntion informs all other buses that a bus is activated again
   let message ["bus_activated"]
   let content []
   set content lput inactive-buses content
@@ -41,7 +43,6 @@ to inform-about-activating
 end
 
 to broadcast-to-everyone [message]
-  ; this function takes one input argument [message], and sends it to all other buses. 
   let id_list []
   ask other buses [
     set id_list lput bus_id id_list
@@ -52,7 +53,9 @@ to broadcast-to-everyone [message]
   foreach id_list [
     send-message ? message
   ]
+  
 end
+
 
 to report-status
   
@@ -73,11 +76,15 @@ to report-status
       
       send-message id message
       show message
+      
     ]
+    
   ]
+  
 end
 
 to spawn-bus [b_type]
+  
   ; call this function if a bus thinks it needs to spawn a bus.
   ; Immediately pass the bus' dijkstra graph knowledge to the newly created bus.
   
@@ -139,7 +146,6 @@ to process-inbox
       if b_type = 1 [ set total-capacity (total-capacity + 12) ]
       if b_type = 2 [ set total-capacity (total-capacity + 60) ]
       if b_type = 3 [ set total-capacity (total-capacity + 150) ]
-      
     ]
     
     if message_type = "bus_removed"[
@@ -153,6 +159,7 @@ to process-inbox
     ]
     
     if message_type = "set_active"[
+      show "I am active"
       set route-type 2
       
       set inactive-buses remove bus_id inactive-buses
@@ -172,7 +179,7 @@ to process-inbox
       set content lput total-capacity content ; the 2nd element of the reply is the total-capacity of all the buses combined
       set content lput inactive-buses content ; the 3rd element of the reply is the list of inactive buses
       
-      ; set content lput your_content content
+                                              ; set content lput your_content content
       set reply lput content reply
       
       ; send the message to spawnee
@@ -191,9 +198,9 @@ to process-inbox
       set route-type (item 1 content)
       set total-capacity (item 2 content)
       set inactive-buses (item 3 content)
-    
-      let first-stop one-of item 3 graph ; the first stop is a random stop from Amsterdam CS
-      set next-stops get-shortest-route current_stop first-stop ; the first route is defined by randomness. After that the weight matrix takes over
+      ; set route-length (item 3 content)
+      
+      ; Also store the direction when you need to be!
       
       set informed true
     ]
@@ -245,6 +252,7 @@ end
 
 
 to request-info
+  
   ; This method is called by a newborn only and sends a message to its parent requesting for information.
   let newborn bus_id
   let parent 0
@@ -258,10 +266,12 @@ to request-info
   if parent != 0 [
     send-message parent ["requesting_info" [0]]
   ]
+  
 end
 
 
 to-report decide-spawn-type
+  
   let prospect 0 ; the number of passengers that will be picked up and dropped off.
   
   if free-space > (0.1 * capacity) [
@@ -288,18 +298,20 @@ to-report decide-spawn-type
     report 0
   ]
   
-  if prospect >= 150 [
+  set prospect (prospect / length next-stops)
+  
+  if prospect >= 20 [
     report 3
   ]
-  if prospect < 150 and prospect >= 60 [
+  if prospect < 20 and prospect >= 10 [
     report 2
   ]
   
-  if prospect < 60 and prospect >= 12 [
+  if prospect < 10 and prospect >= 5 [
     report 1
   ]
   
-  if prospect < 12 [
+  if prospect < 5 [
     report 0
   ]
   
@@ -353,6 +365,7 @@ to clear-inbox
 end
 
 to communicate-id [new_id b_type]
+  
   let content []
   let message ["new_bus"]
   set content lput new_id content
@@ -367,4 +380,5 @@ to communicate-id [new_id b_type]
   foreach id_list [
     send-message ? message
   ]
+  
 end
