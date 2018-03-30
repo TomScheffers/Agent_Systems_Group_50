@@ -1,10 +1,10 @@
 to bus-actions
   
   if informed = true [
-    drop-passengers-new
+    drop-passengers
     pick-up-drop-same-station
     check-to-shutdown    
-    pickup-passengers-new
+    pickup-passengers
     move-to-next
     set incoming-bids []
   ]
@@ -23,75 +23,11 @@ to check-to-shutdown
       set total-waiting-passengers-on-route (total-waiting-passengers-on-route + item ? number-of-passenger-at-each-stop)
     ]
     
-    if total-waiting-passengers-on-route < 0.5 * capacity [
+    if total-waiting-passengers-on-route < 0.8 * capacity [
       set route-type 3
       show "Shutting down" 
     ]
   ]
-end
-
-to pickup-passengers
-  ;pick up passengers en route
-  let stop-passengers get-passengers-at-stop current_stop
-  
-  foreach stop-passengers[
-    let pick-up 0
-    let id item 0 ?
-    let goal item 1 ?
-    ; show id
-    ; show goal
-    ifelse member? goal next-stops and free-space > 0[     ;This checks if the goal is en route
-      pick-up-passenger id
-      set free-space (free-space - 1)
-      
-    ][
-    let shortest-route get-shortest-route current_stop goal ;If the goal is not in next-stops, we check if any of the stops of the shortest route is on our route
-    let order []
-    foreach but-last shortest-route[
-      let short-route-id ?
-      foreach next-stops[
-        let next-stop-id ?
-        if short-route-id = next-stop-id[
-          set order []
-          set pick-up 1
-          set order lput id order
-          set order lput next-stop-id order
-        ]
-      ]
-    ]
-    if pick-up = 1 and free-space > 0[
-      set passenger-orders lput order passenger-orders
-      pick-up-passenger id
-      set free-space (free-space - 1)
-    ]
-    ]
-  ]
-end
-
-to drop-passengers
-  foreach bus_passengers[
-    let id item 0 ?
-    let goal item 1 ?
-    if goal = current_stop [
-      drop-off-passenger id
-      set free-space (free-space + 1)
-    ]
-  ]
-  let idx 0
-  foreach passenger-orders[
-    let id item 0 ?
-    let goal item 1 ?
-    ifelse goal = current_stop[
-      ;write "Dropped off passenger with ID:"
-      ;show id
-      drop-off-passenger id
-      set free-space (free-space + 1)
-      set passenger-orders remove-item idx passenger-orders
-    ][
-    set idx idx + 1
-    ]
-  ]
-  ;show passenger-orders
 end
 
 to move-to-next
@@ -134,7 +70,7 @@ to-report get-distance-indirect [bs1 bs2] ;Here we can get distance between not 
   report return
 end
 
-to pickup-passengers-new
+to pickup-passengers
   let stop-passengers get-passengers-at-stop current_stop
   let interesting-passengers []
   
@@ -214,7 +150,7 @@ to pickup-passengers-new
 end
 
 
-to drop-passengers-new
+to drop-passengers
   let idx 0
   foreach passenger-orders[
     let id item 0 ?

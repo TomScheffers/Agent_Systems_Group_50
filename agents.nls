@@ -264,7 +264,7 @@ to execute-actions
 
       ]
       [set next-stops but-first next-stops ;remove last stop
-       drop-passengers-new
+       drop-passengers
        pick-up-drop-same-station
        move-to-next]
     ]
