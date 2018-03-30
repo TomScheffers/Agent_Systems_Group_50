@@ -145,6 +145,10 @@ to make-weight-matrix
   ;2) Weight matrix for people waiting at current stop and stops on the route
   let relevant-stops []
   set relevant-stops lput current_stop next-stops
+  show current_stop
+  show relevant-stops
+  show next-stops
+  show ""
   foreach relevant-stops[
     let value ?
     let stop-passengers get-passengers-at-stop value
