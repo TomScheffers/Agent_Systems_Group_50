@@ -1,5 +1,5 @@
+; function that performs the majority of the buses tasks
 to bus-actions
-  
   if informed = true [
     drop-passengers
     pick-up-drop-same-station
@@ -33,10 +33,10 @@ end
 to move-to-next
   if length next-stops > 0 
     [travel-to item 0 next-stops]
-  
 end
 
 to pick-up-drop-same-station
+  ; a function that picksups and drops passengers which trave to the same station, from Amster to Amstel, for example. 
   let stop-passengers get-passengers-at-stop current_stop
   if free-space > 0 [
     foreach stop-passengers[
@@ -50,9 +50,9 @@ to pick-up-drop-same-station
   ]
 end
 
-to-report get-distance-indirect [bs1 bs2] ;Here we can get distance between not connected stops
+;Here we can get distance between not connected stops
+to-report get-distance-indirect [bs1 bs2] 
   let shortest-route (get-shortest-route bs1 bs2)
-  ;write "1.1) The shortest route for this calculation is: " show shortest-route
   
   let return 0
   let last-stop -1
@@ -70,6 +70,7 @@ to-report get-distance-indirect [bs1 bs2] ;Here we can get distance between not 
   report return
 end
 
+; function to pick up passengers
 to pickup-passengers
   let stop-passengers get-passengers-at-stop current_stop
   let interesting-passengers []
@@ -149,7 +150,7 @@ to pickup-passengers
   ]
 end
 
-
+; function to drop passengers
 to drop-passengers
   let idx 0
   foreach passenger-orders[
