@@ -30,6 +30,7 @@ to inform-about-removal
   set content lput total-capacity content 
   set message lput content message
   
+  show inactive-buses
   broadcast-to-everyone message
 end
 
