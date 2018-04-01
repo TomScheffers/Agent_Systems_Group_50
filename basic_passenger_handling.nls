@@ -7,6 +7,7 @@ to bus-actions
     pickup-passengers
     move-to-next
     set incoming-bids []
+    set approaching_stop 0
   ]
 end
 

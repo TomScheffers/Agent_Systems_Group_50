@@ -42,6 +42,7 @@ buses-own [
   percentage-filled ; the percentage of the bus that is filled with passengers
   inactive-buses  ; a list of inactive busses, that is communicated between buses
   
+  approaching_stop; 1 for bus close to bus stop ( distance < x ) 0 otherwise
   made-bid        ; this tracks whether a bid was made for passengers at the next stop
   bidding-list    ; this contains the bidding for the next stop
   incoming-bids   ; this contains the bidding of other buses for my next stop
@@ -213,7 +214,7 @@ end
 to execute-actions
   
   if ticks = 3 and bus_id = 24[ ; initialize with 3 buses
-   spawn-bus 1
+   spawn-bus 2
   ]
   
   if ticks = 15 and bus_id = 25[
@@ -259,12 +260,13 @@ to execute-actions
     ]
   ]
 
-  if route-type = 3[
+  if route-type = 3 [
     if current_stop != -1 [
       ifelse empty? next-stops[
 
       ]
       [set next-stops but-first next-stops ;remove last stop
+       set approaching_stop 0
        drop-passengers
        pick-up-drop-same-station
        move-to-next]

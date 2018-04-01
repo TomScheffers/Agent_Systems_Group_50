@@ -3,7 +3,7 @@ to communication-protocol
   process-inbox
   
   ;if spawner = 0[
-  if current_stop != -1 and spawner = 0 [
+  if current_stop != -1 and spawner = 0 and informed = true [
     spawn-new-bus?
   ]
   
@@ -17,6 +17,34 @@ to communication-protocol
     inform-about-removal
   ]
   
+  if next_stop != false and next_stop != -1 and current_stop = -1 [
+    send-bids
+  ]
+  
+end
+
+to send-bids 
+  if distance bus_stop next_stop < 4.0 and approaching_stop = 0 [
+      let other_bidders []
+      let my_next_stop next_stop
+      let my_bus_id bus_id
+      ask bus_stop next_stop [
+        ask other buses in-radius 4 [
+          if my_next_stop = next_stop and my_bus_id != bus_id [
+            set other_bidders lput bus_id other_bidders
+          ]
+        ]
+      ]
+      
+      if length bidding-list > 0 [
+        let message ["passenger_bid"]
+        set message lput bidding-list message
+        foreach other_bidders [
+          let other_bidder ?
+          send-message other_bidder message
+        ]
+      ]
+    ] 
 end
 
 to inform-about-removal
@@ -176,6 +204,12 @@ to process-inbox
       inform-about-activating ; inform everyone that the bus has been activated
     ]
     
+    if message_type = "passenger_bid" [
+      let other-bid (item 1 item 2 message)
+      set incoming-bids lput other-bid incoming-bids
+    ]
+    
+    
     if message_type = "requesting_info" [
       ; Create a list of instructions for the newborn.
       
@@ -299,7 +333,7 @@ to-report decide-spawn-type
   set prospect (prospect - length bus_passengers) ; assuming all passengers will be dropped off at the next x stops.
   
   let backup (form-coalition + free-space)
-  ;write "all buses on this leg combined have capacity: " show backup
+
   if backup >= prospect or spawns_requested >= prospect [
     report 0
   ]
