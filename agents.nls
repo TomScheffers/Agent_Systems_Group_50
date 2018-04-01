@@ -115,6 +115,11 @@ to init-buses
     set inactive-buses []
   ]
   set percentage-filled 0.0
+  
+  if bus_type = 1 [
+    set stop-bias one-of [1 6 18]  
+  ]
+  
 end
 
 to make-weight-matrix
