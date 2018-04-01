@@ -117,6 +117,7 @@ to spawn-bus [b_type]
   
   ; call this function if a bus thinks it needs to spawn a bus.
   ; Immediately pass the bus' dijkstra graph knowledge to the newly created bus.
+
   
   ifelse empty? inactive-buses[ ; if there are no buses so set to active
     
@@ -340,14 +341,14 @@ to-report decide-spawn-type
   
   set prospect (prospect / length next-stops)
   
-  if prospect >= 20 [
+  if prospect >= 25 [
     report 3
   ]
-  if prospect < 20 and prospect >= 10 [
+  if prospect < 25 and prospect >= 15 [
     report 2
   ]
   
-  if prospect < 10 and prospect >= 5 [
+  if prospect < 15 and prospect >= 5 [
     report 1
   ]
   

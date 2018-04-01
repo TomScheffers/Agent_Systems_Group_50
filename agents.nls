@@ -115,10 +115,12 @@ to init-buses
     set inactive-buses []
   ]
   set percentage-filled 0.0
+  
+  show bus_id
 end
 
 to make-weight-matrix
-  let A 5 ;weight of first matrix
+  let A (5 * (free-space + 1)) / capacity
   let B 8 ;weight of second matrix
   let C 1 ;weight of third matrix
   let D 3 ;alpha for the bias
@@ -223,7 +225,7 @@ to execute-actions
 
   communication-protocol
 
-  if route-type = 2[
+  if route-type = 2 [
 
     ifelse current_stop != -1 [
       set made-bid 0
