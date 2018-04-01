@@ -51,7 +51,6 @@ to setup
   setup-costs
   add-bus 1
 
-  ;add-bus 2
   ask buses [
     show route-type
   ]
