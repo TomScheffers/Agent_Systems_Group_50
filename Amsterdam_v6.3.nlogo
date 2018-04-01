@@ -50,9 +50,7 @@ to setup
   update-bus-stops
   setup-costs
   add-bus 1
-  add-bus 1
-  add-bus 2
-  add-bus 1
+
   ;add-bus 2
   ask buses [
     show route-type
