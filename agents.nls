@@ -71,11 +71,11 @@ to init-buses
   set passenger-orders []
 
   if bus_type = 1 [set capacity 12
-    set required-length 5]
+    set required-length 9]
   if bus_type = 2 [set capacity 60
-    set required-length 6]
+    set required-length 9]
   if bus_type = 3 [set capacity 150
-    set required-length 7]
+    set required-length 9]
 
   set free-space capacity
 
@@ -119,7 +119,7 @@ end
 
 to make-weight-matrix
   let A 5 ;weight of first matrix
-  let B 4 ;weight of second matrix
+  let B 8 ;weight of second matrix
   let C 1 ;weight of third matrix
   let D 3 ;alpha for the bias
   let K matrix:make-constant 24 24 0

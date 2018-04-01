@@ -14,7 +14,7 @@ end
 to check-to-shutdown
   ; function that checks is a bus should shut itself down
   if free-space / capacity < 0.15 and total-capacity > 100 [
-
+    
     let number-of-passenger-at-each-stop count-passengers-at-each-stop
     
     let total-waiting-passengers-on-route 0
@@ -73,6 +73,14 @@ end
 
 ; function to pick up passengers
 to pickup-passengers
+  let all-bids []
+  foreach incoming-bids[
+    let bid ?
+    foreach bid[
+      set all-bids lput ? all-bids
+    ]
+  ]
+  
   let stop-passengers get-passengers-at-stop current_stop
   let interesting-passengers []
   
@@ -80,11 +88,22 @@ to pickup-passengers
   ;write "Current stop is:" show current_stop
   ;write "Stop passengers: " show stop-passengers
   if free-space > 0[
-    foreach stop-passengers[
+    foreach stop-passengers[   
       let pick-up 0
       let id item 0 ?
       let goal item 1 ?
       let info []
+      
+      ;first check the highest bid on this passenger
+      let highest-bid 0
+      foreach all-bids[
+        let bid-id item 0 ?
+        let bid item 2 ?
+        if bid-id = id and bid > highest-bid[
+          set highest-bid bid
+        ]
+      ]
+      
       ;write "0) The goal of the passenger is: " show goal
       ;Here we want to pick up passengers in a gain based matter. We can then compare with other busses to bid for passengers.
       ;First we determine cumulative travelling distance over our route, then we look for each stop how much we gain where Gain = (old_distance - new_distance)/distance to stop
@@ -101,14 +120,20 @@ to pickup-passengers
         let next-stop-id ?
         if stop_please = 0[
           ifelse next-stop-id = goal[
-            set max-gain 1
-            set info []
-            set pick-up 1
-            set info lput id info
-            set info lput next-stop-id info
-            set info lput 1 info
-            set interesting-passengers lput info interesting-passengers 
-            set stop_please 1
+            let dist (get-distance last-stop next-stop-id)
+            set cumulative-distance (cumulative-distance + dist)
+            set last-stop next-stop-id
+            let gain old-distance / cumulative-distance ;we are at goal so new distance = 0
+            if gain >= max-gain and stop_please = 0 and highest-bid <= max-gain[ 
+              set max-gain gain
+              set info []
+              set pick-up 1
+              set info lput id info
+              set info lput next-stop-id info
+              set info lput 1 info
+              set interesting-passengers lput info interesting-passengers 
+              set stop_please 1
+            ]
           ][
           let dist (get-distance last-stop next-stop-id)
           set cumulative-distance (cumulative-distance + dist)
@@ -121,8 +146,8 @@ to pickup-passengers
           let gain (old-distance - new-distance) / cumulative-distance
           ;write "4) The gain is: " show gain
           
-          if gain >= max-gain and stop_please = 0[
-            set max-gain gain
+          if gain >= max-gain and stop_please = 0 and highest-bid <= max-gain[
+            set max-gain (gain * 0.95) ;discounting factor
             set info []
             set pick-up 1
             set info lput id info
@@ -189,14 +214,20 @@ to make-bid
         let next-stop-id ?
         if stop_please = 0[
           ifelse next-stop-id = goal[
-            set max-gain 1
-            set info []
-            set pick-up 1
-            set info lput id info
-            set info lput next-stop-id info
-            set info lput 1 info
-            set interesting-passengers lput info interesting-passengers 
-            set stop_please 1
+            let dist (get-distance last-stop next-stop-id)
+            set cumulative-distance (cumulative-distance + dist)
+            set last-stop next-stop-id
+            let gain old-distance / cumulative-distance ;we are at goal so new distance = 0
+            if gain >= max-gain and stop_please = 0[ 
+              set max-gain gain
+              set info []
+              set pick-up 1
+              set info lput id info
+              set info lput next-stop-id info
+              set info lput 1 info
+              set interesting-passengers lput info interesting-passengers 
+              set stop_please 1
+            ]
           ][
           let dist (get-distance last-stop next-stop-id)
           set cumulative-distance (cumulative-distance + dist)
@@ -207,7 +238,7 @@ to make-bid
           let gain (old-distance - new-distance) / cumulative-distance
           
           if gain >= max-gain and stop_please = 0[
-            set max-gain gain
+            set max-gain (gain * 0.95)
             set info []
             set pick-up 1
             set info lput id info
@@ -221,7 +252,7 @@ to make-bid
         set interesting-passengers lput info interesting-passengers
       ] 
     ]
-
+    
     let sorted-ip sort-by [ item 2 ?1 > item 2 ?2] interesting-passengers 
     let cap free-space
     let passenger-bid []
