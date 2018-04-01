@@ -106,7 +106,6 @@ to init-buses
       [0 12 13 21]  ; 22   - Wibautstraat
       [1 13 14 19]] ; 23   - Zuid
 
-    set stop-bias one-of [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
     set dijkstra_lookup make-route-lookup-table
     set total-capacity capacity
 
@@ -115,6 +114,8 @@ to init-buses
     set inactive-buses []
   ]
   set percentage-filled 0.0
+  
+  set stop-bias one-of [0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23]
   
   if bus_type = 1 [
     set stop-bias one-of [1 6 18]  
