@@ -26,9 +26,7 @@ to check-to-shutdown
     
     if total-waiting-passengers-on-route < 0.8 * capacity [
       set route-type 3
-      
-      set shutdowns (shutdowns + 1)
-      write "Shut downs: " show shutdowns
+      show "Shutting down..."
     ]
   ]
 end

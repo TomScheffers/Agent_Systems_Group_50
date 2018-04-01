@@ -41,7 +41,7 @@ buses-own [
   num-busses      ; the number of busses
   percentage-filled ; the percentage of the bus that is filled with passengers
   inactive-buses  ; a list of inactive busses, that is communicated between buses
-  
+
   approaching_stop; 1 for bus close to bus stop ( distance < x ) 0 otherwise
   made-bid        ; this tracks whether a bid was made for passengers at the next stop
   bidding-list    ; this contains the bidding for the next stop
@@ -53,11 +53,11 @@ buses-own [
 globals [graph]
 
 to init-buses
-  ; Initialize your agents here.
+  ; Initializing agents here
   set made-bid 0
   set bidding-list []
   set incoming-bids []
-  
+
   set informed false
   set spawner 0
   set parent_of []
@@ -115,8 +115,11 @@ to init-buses
     set inactive-buses []
   ]
   set percentage-filled 0.0
-  
-  show bus_id
+
+  if bus_type = 1 [
+    set stop-bias one-of [1 6 18]
+  ]
+
 end
 
 to make-weight-matrix
@@ -214,11 +217,11 @@ to-report count-passengers-at-each-stop
 end
 
 to execute-actions
-  
+
   if ticks = 3 and bus_id = 24[ ; initialize with 3 buses
    spawn-bus 2
   ]
-  
+
   if ticks = 15 and bus_id = 25[
     spawn-bus 1
   ]
@@ -229,7 +232,7 @@ to execute-actions
 
     ifelse current_stop != -1 [
       set made-bid 0
-      
+
       if length next-stops > 0 [set next-stops but-first next-stops] ;we reached destination, drop first of the list
 
       if length next-stops < required-length[                                      ;get new destination to add to list
@@ -258,7 +261,7 @@ to execute-actions
     if made-bid = 0 [
       make-bid
       ]
-    
+
     ]
   ]
 

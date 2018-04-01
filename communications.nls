@@ -2,14 +2,11 @@ to communication-protocol
   
   process-inbox
   
-  ;if spawner = 0[
   if current_stop != -1 and spawner = 0 and informed = true [
     spawn-new-bus?
   ]
   
-  ; This is a dedicated placeholder for buses that have no instructions yet
   if informed = false [
-    ; show "Requesting information..."
     request-info
   ]
   
